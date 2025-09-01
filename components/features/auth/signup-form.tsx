@@ -1,4 +1,3 @@
-// src/components/features/auth/SignUpForm.tsx
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -12,6 +11,7 @@ import { Eye, EyeOff, Mail, User, Lock, UserCheck, Loader2 } from 'lucide-react'
 import { useState } from 'react';
 import Link from 'next/link';
 import { signup } from '@/app/(auth)/login/actions';
+import { toast } from 'sonner';
 
 interface SignUpFormProps {
     onVerificationNeeded?: (email: string) => void;
@@ -35,18 +35,13 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
         setIsLoading(true);
         try {
             const { error } = await signup(data);
-
             if (error) {
-                // Handle signup error
-                console.error('Signup error:', error);
-                return;
+                toast.error(error);
             }
 
             if (onVerificationNeeded) {
                 onVerificationNeeded(data.email);
             }
-        } catch (error) {
-            console.error('Sign up error:', error);
         } finally {
             setIsLoading(false);
         }

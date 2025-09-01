@@ -1,12 +1,11 @@
-// app/(auth)/login/actions.ts
 'use server'
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
-import { SignInInput, SignUpInput, OTPVerificationInput } from '@/lib/validations/auth'
-import { signInSchema } from '@/lib/validations/auth'
+import { SignInInput, SignUpInput, OTPVerificationInput, otpVerificationSchema, resendOtpSchema } from '@/lib/validations/auth'
+import { signInSchema, signUpSchema } from '@/lib/validations/auth'
 
 
 export async function login(formData: SignInInput) {
@@ -30,6 +29,10 @@ export async function login(formData: SignInInput) {
 }
 
 export async function signup(formData: SignUpInput) {
+  const parsedData = signUpSchema.safeParse(formData)
+  if (!parsedData.success) {
+    return { error: 'Invalid input' }
+  }
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signUp({
@@ -44,7 +47,7 @@ export async function signup(formData: SignUpInput) {
   })
 
   if (error) {
-    console.error('Signup Error:', error)
+    console.error('Signup Error:', error.message)
     return { error: error.message }
   }
 
@@ -52,6 +55,10 @@ export async function signup(formData: SignUpInput) {
 }
 
 export async function verifyOTP(formData: OTPVerificationInput) {
+  const parsedData = otpVerificationSchema.safeParse(formData)
+  if (!parsedData.success) {
+    return { error: 'Invalid input' }
+  }
   const supabase = await createClient()
 
   const { error } = await supabase.auth.verifyOtp({
@@ -70,6 +77,10 @@ export async function verifyOTP(formData: OTPVerificationInput) {
 }
 
 export async function resendOTP(email: string) {
+  const parsedData = resendOtpSchema.safeParse({ email })
+  if (!parsedData.success) {
+    return { error: 'Invalid input' }
+  }
   const supabase = await createClient()
 
   const { error } = await supabase.auth.resend({

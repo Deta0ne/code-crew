@@ -1,16 +1,17 @@
-// src/components/features/auth/OTPVerificationForm.tsx
 'use client';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { otpVerificationSchema, type OTPVerificationInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Mail, Shield, RotateCcw, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { verifyOTP, resendOTP } from '@/app/(auth)/login/actions';
+import { toast } from 'sonner';
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp';
+import { REGEXP_ONLY_DIGITS } from 'input-otp';
 
 interface OTPVerificationFormProps {
     email: string;
@@ -26,7 +27,6 @@ export default function OTPVerificationForm({
     const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
     const [canResend, setCanResend] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     const form = useForm<OTPVerificationInput>({
         resolver: zodResolver(otpVerificationSchema),
@@ -58,18 +58,14 @@ export default function OTPVerificationForm({
 
     const onSubmit = async (data: OTPVerificationInput) => {
         setIsLoading(true);
-        setError(null);
         try {
-            const response = await verifyOTP(data);
+            const { success, error } = await verifyOTP(data);
 
-            if (response.success && onVerificationSuccess) {
+            if (success && onVerificationSuccess) {
                 onVerificationSuccess();
             } else {
-                setError(response.error || 'Verification failed');
+                toast.error(error || 'Verification failed');
             }
-        } catch (error) {
-            console.error('OTP verification error:', error);
-            setError('An unexpected error occurred');
         } finally {
             setIsLoading(false);
         }
@@ -77,21 +73,17 @@ export default function OTPVerificationForm({
 
     const handleResendOTP = async () => {
         setIsLoading(true);
-        setError(null);
         try {
-            const response = await resendOTP(email);
+            const { success, error } = await resendOTP(email);
 
-            if (response.success) {
-                setTimeLeft(300); // Reset timer
+            if (success) {
+                setTimeLeft(300);
                 setCanResend(false);
-                form.setValue('token', ''); // Clear the input
-                // Optional: Show a success toast/message
+                form.setValue('token', '');
+                toast.success('OTP resent successfully');
             } else {
-                setError(response.error || 'Failed to resend OTP');
+                toast.error(error || 'Failed to resend OTP');
             }
-        } catch (error) {
-            console.error('Resend OTP error:', error);
-            setError('An unexpected error occurred');
         } finally {
             setIsLoading(false);
         }
@@ -112,30 +104,35 @@ export default function OTPVerificationForm({
             </CardHeader>
             <CardContent>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        {/* OTP Input */}
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="space-y-6 flex flex-col items-center justify-center"
+                    >
                         <FormField
                             control={form.control}
                             name="token"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Verification Code</FormLabel>
+                                    <FormLabel className="sr-only">Verification Code</FormLabel>
                                     <FormControl>
-                                        <div className="relative">
-                                            <Input
-                                                {...field}
-                                                placeholder="123456"
-                                                className="text-center text-2xl font-mono tracking-widest"
-                                                maxLength={6}
-                                                autoComplete="one-time-code"
-                                                disabled={isLoading}
-                                                onChange={(e) => {
-                                                    // Only allow numbers
-                                                    const value = e.target.value.replace(/\D/g, '');
-                                                    field.onChange(value);
-                                                }}
-                                            />
-                                        </div>
+                                        <InputOTP
+                                            maxLength={6}
+                                            pattern={REGEXP_ONLY_DIGITS}
+                                            {...field}
+                                            onChange={(value) => field.onChange(value)}
+                                        >
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={0} />
+                                                <InputOTPSlot index={1} />
+                                                <InputOTPSlot index={2} />
+                                            </InputOTPGroup>
+                                            <InputOTPSeparator />
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={3} />
+                                                <InputOTPSlot index={4} />
+                                                <InputOTPSlot index={5} />
+                                            </InputOTPGroup>
+                                        </InputOTP>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -148,7 +145,7 @@ export default function OTPVerificationForm({
                             className="w-full"
                             disabled={isLoading || form.watch('token').length !== 6}
                         >
-                            {false ? (
+                            {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Verifying...
@@ -176,7 +173,7 @@ export default function OTPVerificationForm({
                         onClick={handleResendOTP}
                         disabled={!canResend || isLoading}
                     >
-                        {false ? (
+                        {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Sending...

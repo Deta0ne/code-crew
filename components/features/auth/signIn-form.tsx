@@ -32,10 +32,9 @@ export default function SignInForm({ onForgotPassword }: SignInFormProps) {
     const onSubmit = async (data: SignInInput) => {
         setIsLoading(true);
         try {
-            const result = await login(data);
-            console.log('result', result.error);
-            if (result.error) {
-                toast.error(result.error);
+            const { error } = await login(data);
+            if (error) {
+                toast.error(error);
             }
         } finally {
             setIsLoading(false);
