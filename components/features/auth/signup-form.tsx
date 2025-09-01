@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Eye, EyeOff, Mail, User, Lock, UserCheck } from 'lucide-react';
+import { Eye, EyeOff, Mail, User, Lock, UserCheck, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { signup } from '@/app/(auth)/login/actions';
 
 interface SignUpFormProps {
     onVerificationNeeded?: (email: string) => void;
@@ -31,10 +32,23 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
     });
 
     const onSubmit = async (data: SignUpInput) => {
-        //const success = await signUp(data);
-        const success = true;
-        if (success && onVerificationNeeded) {
-            onVerificationNeeded(data.email);
+        setIsLoading(true);
+        try {
+            const { error } = await signup(data);
+
+            if (error) {
+                // Handle signup error
+                console.error('Signup error:', error);
+                return;
+            }
+
+            if (onVerificationNeeded) {
+                onVerificationNeeded(data.email);
+            }
+        } catch (error) {
+            console.error('Sign up error:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -57,7 +71,12 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
                                     <FormControl>
                                         <div className="relative">
                                             <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                            <Input placeholder="John Doe" className="pl-10" {...field} />
+                                            <Input
+                                                placeholder="John Doe"
+                                                className="pl-10"
+                                                disabled={false}
+                                                {...field}
+                                            />
                                         </div>
                                     </FormControl>
                                     <FormMessage />
@@ -75,14 +94,18 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
                                     <FormControl>
                                         <div className="relative">
                                             <UserCheck className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                            <Input placeholder="johndoe" className="pl-10" {...field} />
+                                            <Input
+                                                placeholder="johndoe"
+                                                className="pl-10"
+                                                disabled={false}
+                                                {...field}
+                                            />
                                         </div>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-
                         {/* Email */}
                         <FormField
                             control={form.control}
@@ -97,8 +120,9 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
                                                 type="email"
                                                 placeholder="john@example.com"
                                                 className="pl-10"
-                                                {...field}
+                                                disabled={false}
                                                 required
+                                                {...field}
                                             />
                                         </div>
                                     </FormControl>
@@ -121,6 +145,7 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
                                                 type={showPassword ? 'text' : 'password'}
                                                 className="pl-10 pr-10"
                                                 placeholder="••••••••"
+                                                disabled={false}
                                                 {...field}
                                             />
                                             <Button
@@ -129,6 +154,7 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
                                                 size="sm"
                                                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                                 onClick={() => setShowPassword(!showPassword)}
+                                                disabled={false}
                                             >
                                                 {showPassword ? (
                                                     <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -144,8 +170,15 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
                         />
 
                         {/* Submit Button */}
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? 'Creating Account...' : 'Create Account'}
+                        <Button type="submit" className="w-full" disabled={false}>
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Creating Account...
+                                </>
+                            ) : (
+                                'Create Account'
+                            )}
                         </Button>
                     </form>
                 </Form>

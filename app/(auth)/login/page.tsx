@@ -1,5 +1,6 @@
-import SignInForm from '@/components/features/auth/signIn-form';
+// app/(auth)/login/page.tsx
+import AuthFlow from '@/components/features/auth/auth-flow';
 
 export default function LoginPage() {
-    return <SignInForm />;
+    return <AuthFlow initialStep="signin" />;
 }

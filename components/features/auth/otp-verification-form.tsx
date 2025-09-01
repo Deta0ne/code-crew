@@ -1,3 +1,4 @@
+// src/components/features/auth/OTPVerificationForm.tsx
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -7,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Mail, Shield, RotateCcw } from 'lucide-react';
+import { Mail, Shield, RotateCcw, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { verifyOTP, resendOTP } from '@/app/(auth)/login/actions';
 
 interface OTPVerificationFormProps {
     email: string;
@@ -24,6 +26,7 @@ export default function OTPVerificationForm({
     const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
     const [canResend, setCanResend] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const form = useForm<OTPVerificationInput>({
         resolver: zodResolver(otpVerificationSchema),
@@ -40,11 +43,11 @@ export default function OTPVerificationForm({
             return;
         }
 
-        const timer = setTimeout(() => {
-            setTimeLeft(timeLeft - 1);
+        const timer = setInterval(() => {
+            setTimeLeft((prevTime) => prevTime - 1);
         }, 1000);
 
-        return () => clearTimeout(timer);
+        return () => clearInterval(timer);
     }, [timeLeft]);
 
     const formatTime = (seconds: number) => {
@@ -54,18 +57,43 @@ export default function OTPVerificationForm({
     };
 
     const onSubmit = async (data: OTPVerificationInput) => {
-        const success = true;
-        if (success && onVerificationSuccess) {
-            onVerificationSuccess();
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await verifyOTP(data);
+
+            if (response.success && onVerificationSuccess) {
+                onVerificationSuccess();
+            } else {
+                setError(response.error || 'Verification failed');
+            }
+        } catch (error) {
+            console.error('OTP verification error:', error);
+            setError('An unexpected error occurred');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleResendOTP = async () => {
-        const success = true;
-        if (success) {
-            setTimeLeft(300); // Reset timer
-            setCanResend(false);
-            form.setValue('token', ''); // Clear the input
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await resendOTP(email);
+
+            if (response.success) {
+                setTimeLeft(300); // Reset timer
+                setCanResend(false);
+                form.setValue('token', ''); // Clear the input
+                // Optional: Show a success toast/message
+            } else {
+                setError(response.error || 'Failed to resend OTP');
+            }
+        } catch (error) {
+            console.error('Resend OTP error:', error);
+            setError('An unexpected error occurred');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -100,6 +128,7 @@ export default function OTPVerificationForm({
                                                 className="text-center text-2xl font-mono tracking-widest"
                                                 maxLength={6}
                                                 autoComplete="one-time-code"
+                                                disabled={isLoading}
                                                 onChange={(e) => {
                                                     // Only allow numbers
                                                     const value = e.target.value.replace(/\D/g, '');
@@ -119,7 +148,14 @@ export default function OTPVerificationForm({
                             className="w-full"
                             disabled={isLoading || form.watch('token').length !== 6}
                         >
-                            {isLoading ? 'Verifying...' : 'Verify Account'}
+                            {false ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Verifying...
+                                </>
+                            ) : (
+                                'Verify Account'
+                            )}
                         </Button>
                     </form>
                 </Form>
@@ -140,8 +176,17 @@ export default function OTPVerificationForm({
                         onClick={handleResendOTP}
                         disabled={!canResend || isLoading}
                     >
-                        <RotateCcw className="w-4 h-4 mr-2" />
-                        Resend Code
+                        {false ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Sending...
+                            </>
+                        ) : (
+                            <>
+                                <RotateCcw className="w-4 h-4 mr-2" />
+                                Resend Code
+                            </>
+                        )}
                     </Button>
                 </div>
 
@@ -153,6 +198,7 @@ export default function OTPVerificationForm({
                             type="button"
                             onClick={onBackToSignUp}
                             className="font-medium text-primary hover:underline"
+                            disabled={isLoading}
                         >
                             Go back to sign up
                         </button>
