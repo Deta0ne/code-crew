@@ -7,6 +7,12 @@ import { createClient } from '@/lib/supabase/server'
 import { SignInInput, SignUpInput, OTPVerificationInput, otpVerificationSchema, resendOtpSchema } from '@/lib/validations/auth'
 import { signInSchema, signUpSchema } from '@/lib/validations/auth'
 
+type GoogleUserMetadata = {
+  id: string;
+  email: string;
+  name?: string;
+  picture?: string;
+}
 
 export async function login(formData: SignInInput) {
   const parsedData = signInSchema.safeParse(formData)
@@ -103,4 +109,52 @@ export async function signOut() {
 
   revalidatePath('/', 'layout')
   redirect('/login')
+}
+
+export async function signInWithGoogle() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      scopes: 'openid email profile'
+    }
+  })
+
+  if (error) {
+    console.error('Google Sign-In Initiation Error:', error)
+    return { error: error.message }
+  }
+
+  return { 
+    url: data.url, 
+    error: null 
+  }
+}
+
+export async function createOrUpdateUserProfile(user: GoogleUserMetadata) {
+  const supabase = await createClient()
+
+  const username = user.name 
+    ? user.name.toLowerCase().replace(/\s+/g, '_').slice(0, 50)
+    : user.email.split('@')[0]
+
+  const { error } = await supabase
+    .from('users')
+    .upsert({
+      id: user.id,
+      username: username,
+      full_name: user.name || '',
+      avatar_url: user.picture || '',
+    }, {
+      onConflict: 'id'
+    })
+
+  if (error) {
+    console.error('Profile Creation/Update Error:', error)
+    return { error: error.message }
+  }
+
+  return { error: null }
 }

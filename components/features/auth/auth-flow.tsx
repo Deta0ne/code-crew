@@ -30,20 +30,20 @@ export default function AuthFlow({ initialStep = 'signup' }: AuthFlowProps) {
         setVerificationEmail('');
     };
 
-    const handleSwitchToSignIn = () => {
-        setCurrentStep('signin');
-    };
+    // const handleSwitchToSignIn = () => {
+    //     setCurrentStep('signin');
+    // };
 
-    const handleSwitchToSignUp = () => {
-        setCurrentStep('signup');
-    };
+    // const handleSwitchToSignUp = () => {
+    //     setCurrentStep('signup');
+    // };
+
+    // const handleBackToSignIn = () => {
+    //     setCurrentStep('signin');
+    // };
 
     const handleForgotPassword = () => {
         setCurrentStep('forgot-password');
-    };
-
-    const handleBackToSignIn = () => {
-        setCurrentStep('signin');
     };
 
     switch (currentStep) {

@@ -39,7 +39,7 @@ export default function SignUpForm({ onVerificationNeeded }: SignUpFormProps) {
                 toast.error(error);
             }
 
-            if (onVerificationNeeded) {
+            if (onVerificationNeeded && !error) {
                 onVerificationNeeded(data.email);
             }
         } finally {
