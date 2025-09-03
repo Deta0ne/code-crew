@@ -30,8 +30,12 @@ export async function GET(request: Request) {
   const profileResult = await createOrUpdateUserProfile({
     id: data.user.id,
     email: data.user.email || '',
-    name: data.user.user_metadata?.name,
-    picture: data.user.user_metadata?.picture,
+    name: data.user.user_metadata?.name || data.user.user_metadata?.full_name,
+    picture: data.user.user_metadata?.picture || data.user.user_metadata?.avatar_url,
+    login: data.user.user_metadata?.user_name,
+    github_url: `https://github.com/${data.user.user_metadata?.user_name}`
+    || data.user.user_metadata?.preferred_username 
+    ,
   })
 
   if (profileResult.error) {

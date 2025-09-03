@@ -7,11 +7,13 @@ import { createClient } from '@/lib/supabase/server'
 import { SignInInput, SignUpInput, OTPVerificationInput, otpVerificationSchema, resendOtpSchema } from '@/lib/validations/auth'
 import { signInSchema, signUpSchema } from '@/lib/validations/auth'
 
-type GoogleUserMetadata = {
+type OAuthUserMetadata = {
   id: string;
   email: string;
   name?: string;
   picture?: string;
+  login?: string; // GitHub username
+  github_url?: string;
 }
 
 export async function login(formData: SignInInput) {
@@ -133,12 +135,35 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function createOrUpdateUserProfile(user: GoogleUserMetadata) {
+export async function signInWithGitHub() {
   const supabase = await createClient()
 
-  const username = user.name 
-    ? user.name.toLowerCase().replace(/\s+/g, '_').slice(0, 50)
-    : user.email.split('@')[0]
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      scopes: 'read:user user:email'
+    }
+  })
+
+  if (error) {
+    console.error('GitHub Sign-In Initiation Error:', error)
+    return { error: error.message }
+  }
+
+  return { 
+    url: data.url, 
+    error: null 
+  }
+}
+
+export async function createOrUpdateUserProfile(user: OAuthUserMetadata) {
+  const supabase = await createClient()
+
+  const username = user.login || 
+    (user.name 
+      ? user.name.toLowerCase().replace(/\s+/g, '_').slice(0, 50)
+      : user.email.split('@')[0])
 
   const { error } = await supabase
     .from('users')
@@ -147,6 +172,7 @@ export async function createOrUpdateUserProfile(user: GoogleUserMetadata) {
       username: username,
       full_name: user.name || '',
       avatar_url: user.picture || '',
+      github_url: user.github_url || '',
     }, {
       onConflict: 'id'
     })
