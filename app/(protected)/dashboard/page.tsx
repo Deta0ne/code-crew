@@ -1,7 +1,20 @@
 import { Button } from '@/components/ui/button';
 import { signOut } from '@/app/(auth)/login/actions';
+import HomePage from './HomePage';
+import { createClient } from '@/lib/supabase/server';
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('full_name, avatar_url, username')
+        .eq('id', user?.id)
+        .single();
+
     return (
         <div className="container mx-auto p-6">
             <div className="flex justify-between items-center mb-6">
@@ -12,7 +25,11 @@ export default function DashboardPage() {
                     </Button>
                 </form>
             </div>
-            <div>Dashboard Content</div>
+
+            <HomePage />
+            <div>{profile?.full_name}</div>
+            <div>{profile?.avatar_url}</div>
+            <div>{profile?.username}</div>
         </div>
     );
 }

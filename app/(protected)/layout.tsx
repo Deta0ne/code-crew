@@ -1,0 +1,28 @@
+import { ReactNode } from 'react';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import getQueryClient from '@/lib/queryClient';
+import { fetchUser } from '@/lib/services/profile';
+import { createClient } from '@/lib/supabase/server';
+import Providers from '@/providers/providers';
+
+export default async function ProtectedLayout({ children }: { children: ReactNode }) {
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    const queryClient = getQueryClient();
+
+    if (user?.id) {
+        await queryClient.prefetchQuery({
+            queryKey: ['user'],
+            queryFn: () => fetchUser(user.id),
+        });
+    }
+
+    return (
+        <Providers>
+            <HydrationBoundary state={dehydrate(queryClient)}>{children}</HydrationBoundary>
+        </Providers>
+    );
+}
