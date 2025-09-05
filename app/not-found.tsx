@@ -44,6 +44,85 @@ export default function NotFound() {
                 <div className="max-w-4xl mx-auto text-center space-y-8">
                     {/* Ship Illustration */}
                     <div className="relative mb-12">
+                        {/* Animated Lighthouse */}
+                        <div className="absolute top-6 ">
+                            <svg viewBox="0 0 100 120" className="w-28 h-auto opacity-85 drop-shadow-2xl">
+                                {/* Lighthouse Foundation */}
+                                <rect
+                                    x="32"
+                                    y="88"
+                                    width="36"
+                                    height="28"
+                                    fill="#8B4513"
+                                    stroke="#654321"
+                                    strokeWidth="2"
+                                />
+
+                                {/* Main Lighthouse Tower */}
+                                <path
+                                    d="M38 18 L62 18 L60 88 L40 88 Z"
+                                    fill="#f8fafc"
+                                    stroke="#e2e8f0"
+                                    strokeWidth="2"
+                                />
+
+                                {/* Characteristic Red Bands */}
+                                <rect x="38" y="28" width="24" height="10" fill="#dc2626" />
+                                <rect x="38" y="50" width="24" height="10" fill="#dc2626" />
+                                <rect x="38" y="72" width="24" height="10" fill="#dc2626" />
+
+                                {/* Lighthouse Lantern Room */}
+                                <rect
+                                    x="36"
+                                    y="12"
+                                    width="28"
+                                    height="12"
+                                    fill="#1e293b"
+                                    stroke="#475569"
+                                    strokeWidth="2"
+                                />
+                                <circle
+                                    cx="50"
+                                    cy="18"
+                                    r="9"
+                                    fill="#fbbf24"
+                                    stroke="#f59e0b"
+                                    strokeWidth="2"
+                                    className="animate-pulse"
+                                />
+
+                                {/* Rotating Light Beam */}
+                                <g className="animate-spin origin-[50px_18px]" style={{ animationDuration: '5s' }}>
+                                    <path d="M50 18 L130 8 L130 28 Z" fill="url(#beamGradient)" opacity="0.7" />
+                                </g>
+
+                                {/* Entrance Door */}
+                                <rect
+                                    x="45"
+                                    y="78"
+                                    width="10"
+                                    height="14"
+                                    fill="#8B4513"
+                                    stroke="#654321"
+                                    strokeWidth="1"
+                                />
+
+                                {/* Tower Windows */}
+                                <rect x="42" y="33" width="5" height="5" fill="#4682B4" />
+                                <rect x="53" y="33" width="5" height="5" fill="#4682B4" />
+                                <rect x="42" y="55" width="5" height="5" fill="#4682B4" />
+                                <rect x="53" y="55" width="5" height="5" fill="#4682B4" />
+
+                                {/* Light Beam Gradient Definition */}
+                                <defs>
+                                    <linearGradient id="beamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.9" />
+                                        <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.5" />
+                                        <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
                         {/* Ocean Waves */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md h-24 bg-gradient-to-t from-blue-800 to-blue-600 rounded-t-full opacity-80"></div>
 
