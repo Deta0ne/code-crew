@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useSidebar } from '@/components/ui/sidebar';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function SiteHeader() {
     const { toggleSidebar } = useSidebar();
@@ -68,6 +69,7 @@ export function SiteHeader() {
                 </Breadcrumb>
 
                 <SearchForm className="w-full sm:ml-auto sm:w-auto" />
+                <ThemeToggle />
             </div>
         </header>
     );
