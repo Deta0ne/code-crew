@@ -1,5 +1,6 @@
 import { MapPin, Compass, CheckCircle, XCircle, Ship } from 'lucide-react';
 import { UserProfile } from '@/types/database';
+import Image from 'next/image';
 
 type ProfileHeroProps = {
     userProfile: UserProfile;
@@ -35,10 +36,12 @@ export function ProfileHero({ userProfile }: ProfileHeroProps) {
             <div className="flex items-start gap-6 relative z-10">
                 <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/20 flex items-center justify-center text-2xl font-bold flex-shrink-0">
                     {userProfile.avatar_url ? (
-                        <img
+                        <Image
                             src={userProfile.avatar_url}
                             alt={userProfile.full_name || ''}
                             className="w-full h-full rounded-full object-cover"
+                            width={96}
+                            height={96}
                         />
                     ) : (
                         getInitials(userProfile.full_name)

@@ -77,7 +77,7 @@ export function NavUser({ user }: { user: UserProfile }) {
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem onClick={() => router.push('/profile')}>
+                            <DropdownMenuItem onClick={() => router.push(`/${user.username}`)}>
                                 <BadgeCheck />
                                 Account
                             </DropdownMenuItem>
