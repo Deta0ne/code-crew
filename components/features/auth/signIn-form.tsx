@@ -10,9 +10,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
-import { login } from '@/app/(auth)/login/actions';
+import { login } from '@/lib/services/auth';
 import { toast } from 'sonner';
-import { signInWithGoogle, signInWithGitHub } from '@/app/(auth)/login/actions';
+import { signInWithGoogle, signInWithGitHub } from '@/lib/services/auth';
 import { useRouter } from 'next/navigation';
 
 interface SignInFormProps {

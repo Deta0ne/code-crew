@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Eye, EyeOff, Mail, User, Lock, UserCheck, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
-import { signup } from '@/app/(auth)/login/actions';
+import { signup } from '@/lib/services/auth';
 import { toast } from 'sonner';
 
 interface SignUpFormProps {

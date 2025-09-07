@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Mail, Shield, RotateCcw, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { verifyOTP, resendOTP } from '@/app/(auth)/login/actions';
+import { verifyOTP, resendOTP } from '@/lib/services/auth';
 import { toast } from 'sonner';
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
