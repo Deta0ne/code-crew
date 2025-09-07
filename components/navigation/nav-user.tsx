@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { UserProfile } from '@/types/database';
-import { signOut } from '@/app/(auth)/login/actions';
+import { signOut } from '@/lib/services/auth';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 

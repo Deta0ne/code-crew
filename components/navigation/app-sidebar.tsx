@@ -98,7 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { user } = useAuth();
 
     const { data: userProfile, isLoading, isError } = useUser(user?.id);
-    console.log(userProfile);
+
     if (isLoading && !userProfile) {
         return <div>Profil bilgileri yükleniyor...</div>;
     }

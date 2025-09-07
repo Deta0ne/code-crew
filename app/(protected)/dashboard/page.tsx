@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { signOut } from '@/app/(auth)/login/actions';
+import { signOut } from '@/lib/services/auth';
 import HomePage from './HomePage';
 import { createClient } from '@/lib/supabase/server';
 
