@@ -77,27 +77,13 @@ export function useFormNavigation({
     return 'Save as Draft';
   };
 
-  // Keyboard navigation
-  const handleKeyPress = useCallback((event: KeyboardEvent) => {
-    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-      // Cmd/Ctrl + Enter to proceed
-      event.preventDefault();
-      handleNext();
-    } else if (event.key === 'Escape') {
-      // Escape to go back
-      event.preventDefault();
-      if (canGoBack) {
-        handleBack();
-      }
-    }
-  }, [handleNext, handleBack, canGoBack]);
+
 
   return {
     // Actions
     handleNext,
     handleBack,
     handleSaveDraft,
-    handleKeyPress,
     
     // UI helpers
     stepLabels,

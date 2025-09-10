@@ -1,100 +1,96 @@
-// Form stepper component
 'use client';
 
+import React from 'react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { FormStep } from './types';
 
 interface FormStepperProps {
-    currentStep: FormStep;
-    completedSteps: FormStep[];
-    stepLabels: Record<FormStep, string>;
+    currentStep: number;
+    completedSteps: number[];
+    stepLabels: Record<number, string>;
     progress: number;
-    onStepClick?: (step: FormStep) => void;
+    onStepClick?: (step: number) => void;
 }
 
 export function FormStepper({ currentStep, completedSteps, stepLabels, progress, onStepClick }: FormStepperProps) {
-    const steps: FormStep[] = [1, 2, 3, 4];
+    const stepNumbers = Object.keys(stepLabels).map(Number).sort();
 
     return (
-        <div className="w-full">
-            {/* Progress bar */}
-            <div className="w-full bg-gray-200 rounded-full h-1.5 mb-6">
+        <div className="w-full p-2">
+            {/* Progress Bar */}
+            <div className="relative">
+                <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-200" />
                 <div
-                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-300 ease-in-out"
+                    className="absolute top-5 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500 ease-out"
                     style={{ width: `${progress}%` }}
                 />
-            </div>
 
-            {/* Step indicators */}
-            <div className="flex justify-between">
-                {steps.map((step) => {
-                    const isActive = currentStep === step;
-                    const isCompleted = completedSteps.includes(step);
-                    const isClickable = onStepClick && (isCompleted || step <= currentStep);
+                {/* Step Indicators */}
+                <div className="relative flex justify-between">
+                    {stepNumbers.map((stepNumber) => {
+                        const label = stepLabels[stepNumber];
+                        const isCompleted = completedSteps.includes(stepNumber);
+                        const isCurrent = currentStep === stepNumber;
+                        const isClickable = onStepClick && (isCompleted || stepNumber <= currentStep);
 
-                    return (
-                        <div
-                            key={step}
-                            className={cn(
-                                'flex flex-col items-center cursor-pointer group',
-                                !isClickable && 'cursor-default',
-                            )}
-                            onClick={() => isClickable && onStepClick(step)}
-                        >
-                            {/* Step circle */}
-                            <div
-                                className={cn(
-                                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200',
-                                    isCompleted && 'bg-green-500 text-white',
-                                    isActive && !isCompleted && 'bg-blue-500 text-white ring-4 ring-blue-100',
-                                    !isActive && !isCompleted && 'bg-gray-200 text-gray-500',
-                                    isClickable && 'group-hover:scale-110',
-                                )}
-                            >
-                                {isCompleted ? (
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                        />
-                                    </svg>
-                                ) : (
-                                    step
-                                )}
-                            </div>
-
-                            {/* Step label */}
-                            <div
-                                className={cn(
-                                    'mt-2 text-xs font-medium text-center transition-colors duration-200',
-                                    isActive && 'text-blue-600',
-                                    isCompleted && 'text-green-600',
-                                    !isActive && !isCompleted && 'text-gray-500',
-                                    isClickable && 'group-hover:text-blue-600',
-                                )}
-                            >
-                                {stepLabels[step]}
-                            </div>
-
-                            {/* Step connector line */}
-                            {step < 4 && (
-                                <div
+                        return (
+                            <div key={stepNumber} className="flex flex-col items-center">
+                                {/* Step Circle */}
+                                <button
+                                    onClick={() => (isClickable ? onStepClick(stepNumber) : undefined)}
+                                    disabled={!isClickable}
                                     className={cn(
-                                        'absolute top-4 left-1/2 w-full h-0.5 -z-10 transition-colors duration-200',
-                                        step < currentStep ? 'bg-green-500' : 'bg-gray-200',
+                                        'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200',
+                                        'border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+
+                                        // Completed state
+                                        isCompleted && 'bg-blue-600 border-blue-600 text-white shadow-sm',
+
+                                        // Current state
+                                        isCurrent &&
+                                            !isCompleted &&
+                                            'bg-white border-blue-600 text-blue-600 shadow-sm ring-4 ring-blue-50',
+
+                                        // Future state
+                                        !isCompleted && !isCurrent && 'bg-white border-gray-300 text-gray-400',
+
+                                        // Hover states
+                                        isClickable && 'hover:shadow-md hover:scale-105 cursor-pointer',
+                                        !isClickable && 'cursor-default',
                                     )}
-                                    style={{
-                                        left: `${(step - 1) * 33.33 + 16.665}%`,
-                                        width: '33.33%',
-                                    }}
-                                />
-                            )}
-                        </div>
-                    );
-                })}
+                                >
+                                    {isCompleted ? (
+                                        <Check className="w-5 h-5" strokeWidth={2.5} />
+                                    ) : (
+                                        <span className="text-sm font-semibold">{stepNumber}</span>
+                                    )}
+                                </button>
+
+                                {/* Step Label */}
+                                <div className="mt-3 text-center min-w-0">
+                                    <span
+                                        className={cn(
+                                            'text-sm font-medium transition-colors',
+                                            isCompleted || isCurrent ? 'text-gray-900' : 'text-gray-500',
+                                        )}
+                                    >
+                                        {label}
+                                    </span>
+
+                                    {/* Step Status Indicator */}
+                                    {isCurrent && (
+                                        <div className="mt-1">
+                                            <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mx-auto" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
 }
+
+export default FormStepper;

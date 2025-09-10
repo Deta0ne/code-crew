@@ -1,7 +1,5 @@
-// Main BeaconForm component
 'use client';
 
-import { useEffect } from 'react';
 import { useBeaconForm } from './hooks/useBeaconForm';
 import { useFormNavigation } from './hooks/useFormNavigation';
 import { FormStepper } from './FormStepper';
@@ -116,17 +114,6 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
         onSubmit: handleSubmit,
         onSaveDraft: handleSaveDraft,
     });
-
-    // Keyboard shortcuts
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            navigation.handleKeyPress(event);
-        };
-
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [navigation]);
-
     // Default trigger button
     const defaultTrigger = <Button>Create Beacon</Button>;
 
@@ -134,55 +121,55 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
         <Sheet>
             <SheetTrigger asChild>{trigger || defaultTrigger}</SheetTrigger>
 
-            <SheetContent className="w-[95%] sm:w-[600px] sm:max-w-none overflow-y-auto">
-                <SheetHeader>
-                    <SheetTitle>Create a Project Beacon</SheetTitle>
+            <SheetContent className="w-[95%] sm:w-[700px] sm:max-w-none overflow-y-auto bg-white">
+                <SheetHeader className="border-b border-gray-100">
+                    <SheetTitle className="text-2xl font-semibold text-gray-900 tracking-tight">
+                        Create Beacon
+                    </SheetTitle>
+                    <p className="text-gray-600 leading-relaxed">
+                        Connect with developers who share your vision and build something amazing together.
+                    </p>
                 </SheetHeader>
 
-                <div className="mt-6">
-                    {/* Progress indicator */}
-                    <FormStepper
-                        currentStep={currentStep}
-                        completedSteps={completedSteps}
-                        stepLabels={navigation.stepLabels}
-                        progress={progress}
-                        onStepClick={goToStep}
-                    />
+                {/* Progress indicator */}
+                <FormStepper
+                    currentStep={currentStep}
+                    completedSteps={completedSteps}
+                    stepLabels={navigation.stepLabels}
+                    progress={progress}
+                />
 
-                    {/* Form content based on current step */}
-                    <div className="mt-8 min-h-[400px]">
-                        {currentStep === 1 && (
-                            <TypeSelection selectedType={selectedType} onTypeSelect={setSelectedType} />
-                        )}
+                {/* Form content based on current step */}
+                <div className="px-4">
+                    {currentStep === 1 && <TypeSelection selectedType={selectedType} onTypeSelect={setSelectedType} />}
 
-                        {currentStep === 2 && <CommonFields formData={formData} onUpdate={updateBaseData} />}
+                    {currentStep === 2 && <CommonFields formData={formData} onUpdate={updateBaseData} />}
 
-                        {currentStep === 3 && selectedType && (
-                            <TypeSpecificFields
-                                type={selectedType}
-                                formData={formData.type_specific_data || {}}
-                                onUpdate={updateTypeData}
-                            />
-                        )}
+                    {currentStep === 3 && selectedType && (
+                        <TypeSpecificFields
+                            type={selectedType}
+                            formData={formData.type_specific_data || {}}
+                            onUpdate={updateTypeData}
+                        />
+                    )}
 
-                        {currentStep === 4 && <Preview formData={formData as any} onEdit={goToStep} />}
-                    </div>
-
-                    {/* Navigation buttons */}
-                    <FormNavigation
-                        currentStep={currentStep}
-                        canProceed={canProceed}
-                        canGoBack={canGoBack}
-                        isSubmitting={isSubmitting}
-                        isDirty={isDirty}
-                        onNext={navigation.handleNext}
-                        onBack={navigation.handleBack}
-                        onSaveDraft={navigation.handleSaveDraft}
-                        getNextButtonText={navigation.getNextButtonText}
-                        getBackButtonText={navigation.getBackButtonText}
-                        getSaveDraftButtonText={navigation.getSaveDraftButtonText}
-                    />
+                    {currentStep === 4 && <Preview formData={formData as any} onEdit={goToStep} />}
                 </div>
+
+                {/* Navigation buttons */}
+                <FormNavigation
+                    currentStep={currentStep}
+                    canProceed={canProceed}
+                    canGoBack={canGoBack}
+                    isSubmitting={isSubmitting}
+                    isDirty={isDirty}
+                    onNext={navigation.handleNext}
+                    onBack={navigation.handleBack}
+                    onSaveDraft={navigation.handleSaveDraft}
+                    getNextButtonText={navigation.getNextButtonText}
+                    getBackButtonText={navigation.getBackButtonText}
+                    getSaveDraftButtonText={navigation.getSaveDraftButtonText}
+                />
             </SheetContent>
         </Sheet>
     );

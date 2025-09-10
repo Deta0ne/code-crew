@@ -1,166 +1,133 @@
-// Type selection component
 'use client';
 
+import React from 'react';
 import { cn } from '@/lib/utils';
-import type { ProjectType, TypeSelectionProps } from './types';
+import { projectTypes } from './config/project-types';
+import { ProjectType } from './types';
 
-// Type definitions with icons and descriptions
-const PROJECT_TYPES: Array<{
-    type: ProjectType;
-    title: string;
-    description: string;
-    icon: string;
-    color: string;
-    features: string[];
-}> = [
-    {
-        type: 'learning',
-        title: 'Learning Project',
-        description: 'Educational projects focused on skill development and knowledge sharing',
-        icon: '🎓',
-        color: 'from-blue-500 to-blue-600',
-        features: ['Skill building', 'Mentorship', 'Learning goals', 'Resource sharing'],
-    },
-    {
-        type: 'portfolio',
-        title: 'Portfolio Project',
-        description: 'Showcase projects to demonstrate skills and attract opportunities',
-        icon: '💼',
-        color: 'from-green-500 to-green-600',
-        features: ['Professional showcase', 'Career focused', 'Demo ready', 'Industry relevant'],
-    },
-    {
-        type: 'open_source',
-        title: 'Open Source',
-        description: 'Community-driven projects contributing to the open source ecosystem',
-        icon: '🌟',
-        color: 'from-purple-500 to-purple-600',
-        features: ['Public repository', 'Community driven', 'Open collaboration', 'Documentation'],
-    },
-    {
-        type: 'hackathon',
-        title: 'Hackathon Project',
-        description: 'Time-bound competitive projects with specific deadlines and goals',
-        icon: '⚡',
-        color: 'from-orange-500 to-orange-600',
-        features: ['Time constrained', 'Competition ready', 'Rapid development', 'Innovation focused'],
-    },
-    {
-        type: 'tutorial',
-        title: 'Tutorial Project',
-        description: 'Step-by-step educational content and guided learning experiences',
-        icon: '📚',
-        color: 'from-indigo-500 to-indigo-600',
-        features: ['Educational content', 'Structured learning', 'Step-by-step guide', 'Teaching focused'],
-    },
-    {
-        type: 'research',
-        title: 'Research Project',
-        description: 'Academic or experimental projects exploring new ideas and concepts',
-        icon: '🔬',
-        color: 'from-pink-500 to-pink-600',
-        features: ['Academic focus', 'Experimental', 'Research methodology', 'Knowledge discovery'],
-    },
-];
+interface TypeSelectionProps {
+    selectedType: ProjectType | null;
+    onTypeSelect: (type: ProjectType) => void;
+}
 
 export function TypeSelection({ selectedType, onTypeSelect }: TypeSelectionProps) {
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
+            {/* Header Section */}
             <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Project Type</h2>
-                <p className="text-gray-600">
-                    Select the type that best describes your project. This will customize the form for your specific
-                    needs.
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">Choose Your Beacon Type</h2>
+                <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                    Select the type that best describes your project vision. This helps us tailor the experience and
+                    connect you with the right collaborators.
                 </p>
             </div>
 
+            {/* Project Type Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {PROJECT_TYPES.map((projectType) => (
-                    <button
-                        key={projectType.type}
-                        onClick={() => onTypeSelect(projectType.type)}
-                        className={cn(
-                            'relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.02]',
-                            selectedType === projectType.type
-                                ? 'border-blue-500 bg-blue-50 shadow-lg scale-[1.02]'
-                                : 'border-gray-200 bg-white hover:border-gray-300',
-                        )}
-                    >
-                        {/* Selection indicator */}
-                        {selectedType === projectType.type && (
-                            <div className="absolute top-4 right-4 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                <svg
-                                    className="w-4 h-4 text-white"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M5 13l4 4L19 7"
-                                    />
-                                </svg>
-                            </div>
-                        )}
+                {projectTypes.map((option) => {
+                    const Icon = option.icon;
+                    const isSelected = selectedType === option.type;
 
-                        {/* Icon with gradient background */}
-                        <div
+                    return (
+                        <button
+                            key={option.type}
+                            onClick={() => onTypeSelect(option.type)}
                             className={cn(
-                                'w-12 h-12 rounded-lg bg-gradient-to-br flex items-center justify-center text-2xl mb-4',
-                                projectType.color,
+                                // Base styles
+                                'group relative p-6 text-left transition-all duration-200 ease-out cursor-pointer',
+                                'border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                                'hover:shadow-lg hover:-translate-y-1',
+
+                                // Conditional styles
+                                isSelected
+                                    ? 'bg-blue-50 border-blue-200 shadow-md ring-1 ring-blue-200'
+                                    : 'bg-white border-gray-200 hover:border-gray-300',
                             )}
                         >
-                            {projectType.icon}
-                        </div>
+                            {/* Selection Indicator */}
+                            <div
+                                className={cn(
+                                    'absolute top-4 right-4 w-5 h-5 rounded-full border-2 transition-all duration-200',
+                                    isSelected
+                                        ? 'bg-blue-600 border-blue-600'
+                                        : 'border-gray-300 group-hover:border-gray-400',
+                                )}
+                            >
+                                {isSelected && (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <div className="w-2 h-2 bg-white rounded-full" />
+                                    </div>
+                                )}
+                            </div>
 
-                        {/* Content */}
-                        <div className="space-y-3">
-                            <h3 className="text-lg font-semibold text-gray-900">{projectType.title}</h3>
+                            {/* Icon */}
+                            <div
+                                className={cn(
+                                    'w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-colors',
+                                    isSelected
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200',
+                                )}
+                            >
+                                <Icon className="w-6 h-6" />
+                            </div>
 
-                            <p className="text-sm text-gray-600 leading-relaxed">{projectType.description}</p>
-
-                            {/* Features */}
-                            <div className="flex flex-wrap gap-2">
-                                {projectType.features.map((feature, index) => (
-                                    <span
-                                        key={index}
+                            {/* Content */}
+                            <div className="space-y-3">
+                                <div>
+                                    <h3
                                         className={cn(
-                                            'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
-                                            selectedType === projectType.type
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-gray-100 text-gray-700',
+                                            'font-semibold text-lg mb-1 transition-colors',
+                                            isSelected ? 'text-blue-900' : 'text-gray-900',
                                         )}
                                     >
-                                        {feature}
-                                    </span>
-                                ))}
+                                        {option.title}
+                                    </h3>
+                                    <p className="text-gray-600 text-sm leading-relaxed">{option.description}</p>
+                                </div>
+
+                                {/* Benefits */}
+                                <div className="flex flex-wrap gap-2">
+                                    {option.benefits.map((benefit) => (
+                                        <span
+                                            key={benefit}
+                                            className={cn(
+                                                'px-2.5 py-1 text-xs font-medium rounded-full transition-colors',
+                                                isSelected ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600',
+                                            )}
+                                        >
+                                            {benefit}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    </button>
-                ))}
+
+                            {/* Hover Effect Overlay */}
+                            <div
+                                className={cn(
+                                    'absolute inset-0 rounded-xl transition-opacity',
+                                    'bg-gradient-to-r from-blue-50/0 to-blue-50/30 opacity-0 group-hover:opacity-100',
+                                    isSelected && 'opacity-50',
+                                )}
+                            />
+                        </button>
+                    );
+                })}
             </div>
 
+            {/* Selection Summary */}
             {selectedType && (
-                <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
+                <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                        <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-2 h-2 bg-white rounded-full" />
                         </div>
                         <div>
-                            <h4 className="font-medium text-blue-900">
-                                {PROJECT_TYPES.find((pt) => pt.type === selectedType)?.title} Selected
-                            </h4>
-                            <p className="text-sm text-blue-700">
-                                The form will be customized for this project type in the next steps.
+                            <p className="text-blue-900 font-medium text-sm">
+                                {projectTypes.find((type) => type.type === selectedType)?.title} Selected
+                            </p>
+                            <p className="text-blue-700 text-sm mt-1">
+                                You can change this selection at any time during the setup process.
                             </p>
                         </div>
                     </div>
@@ -169,3 +136,5 @@ export function TypeSelection({ selectedType, onTypeSelect }: TypeSelectionProps
         </div>
     );
 }
+
+export default TypeSelection;

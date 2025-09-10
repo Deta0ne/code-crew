@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { signOut } from '@/lib/services/auth';
 import HomePage from './HomePage';
 import { createClient } from '@/lib/supabase/server';
-import { BeaconForm } from './FormBeacon';
+import FormBeacon from './FormBeacon';
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
                 </form>
             </div> */}
 
-            <BeaconForm />
+            <FormBeacon />
             <div>{profile?.full_name}</div>
             <div>{profile?.avatar_url}</div>
             <div>{profile?.username}</div>

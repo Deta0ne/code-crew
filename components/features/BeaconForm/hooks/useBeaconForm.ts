@@ -243,8 +243,9 @@ export function useBeaconForm() {
   }, [validateStep]);
 
   const progress = useMemo(() => {
-    return (completedSteps.length / 4) * 100;
-  }, [completedSteps]);
+    // Progress based on current step, not completed steps
+    return ((state.currentStep - 1) / 3) * 100;
+  }, [state.currentStep]);
 
   const isFormComplete = useMemo(() => {
     return completedSteps.length === 4;
