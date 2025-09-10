@@ -1,0 +1,191 @@
+// Main BeaconForm component
+'use client';
+
+import { useEffect } from 'react';
+import { useBeaconForm } from './hooks/useBeaconForm';
+import { useFormNavigation } from './hooks/useFormNavigation';
+import { FormStepper } from './FormStepper';
+import { TypeSelection } from './TypeSelection';
+import { CommonFields } from './CommonFields';
+import { TypeSpecificFields } from './TypeSpecificFields';
+import { Preview } from './Preview';
+import { FormNavigation } from './FormNavigation';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+
+interface BeaconFormProps {
+    trigger?: React.ReactNode;
+    onSubmit?: (data: any) => Promise<void>;
+    onSaveDraft?: (data: any) => Promise<void>;
+}
+
+export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSaveDraftProp }: BeaconFormProps) {
+    const {
+        currentStep,
+        selectedType,
+        formData,
+        isSubmitting,
+        isDirty,
+        canProceed,
+        canGoBack,
+        completedSteps,
+        progress,
+        isFormComplete,
+
+        // Actions
+        setSelectedType,
+        updateBaseData,
+        updateTypeData,
+        nextStep,
+        previousStep,
+        goToStep,
+        setSubmitting,
+        resetForm,
+    } = useBeaconForm();
+
+    // Handle form submission
+    const handleSubmit = async () => {
+        if (!isFormComplete || isSubmitting) return;
+
+        try {
+            setSubmitting(true);
+
+            // Prepare submission data
+            const submissionData = {
+                ...formData,
+                project_type: selectedType,
+                type_specific_data: formData.type_specific_data || {},
+            };
+
+            // Call external submit handler
+            if (onSubmitProp) {
+                await onSubmitProp(submissionData);
+            } else {
+                // Default submission logic
+                console.log('Submitting beacon:', submissionData);
+            }
+
+            // Reset form after successful submission
+            resetForm();
+        } catch (error) {
+            console.error('Error submitting beacon:', error);
+            // TODO: Add proper error handling
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // Handle save as draft
+    const handleSaveDraft = async () => {
+        if (isSubmitting) return;
+
+        try {
+            setSubmitting(true);
+
+            // Prepare draft data
+            const draftData = {
+                ...formData,
+                project_type: selectedType,
+                type_specific_data: formData.type_specific_data || {},
+                status: 'draft',
+            };
+
+            // Call external save draft handler
+            if (onSaveDraftProp) {
+                await onSaveDraftProp(draftData);
+            } else {
+                // Default save draft logic
+                console.log('Saving draft:', draftData);
+            }
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            // TODO: Add proper error handling
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // Form navigation hook
+    const navigation = useFormNavigation({
+        currentStep,
+        canProceed,
+        canGoBack,
+        isSubmitting,
+        onNext: nextStep,
+        onBack: previousStep,
+        onSubmit: handleSubmit,
+        onSaveDraft: handleSaveDraft,
+    });
+
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            navigation.handleKeyPress(event);
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [navigation]);
+
+    // Default trigger button
+    const defaultTrigger = <Button>Create Beacon</Button>;
+
+    return (
+        <Sheet>
+            <SheetTrigger asChild>{trigger || defaultTrigger}</SheetTrigger>
+
+            <SheetContent className="w-[95%] sm:w-[600px] sm:max-w-none overflow-y-auto">
+                <SheetHeader>
+                    <SheetTitle>Create a Project Beacon</SheetTitle>
+                </SheetHeader>
+
+                <div className="mt-6">
+                    {/* Progress indicator */}
+                    <FormStepper
+                        currentStep={currentStep}
+                        completedSteps={completedSteps}
+                        stepLabels={navigation.stepLabels}
+                        progress={progress}
+                        onStepClick={goToStep}
+                    />
+
+                    {/* Form content based on current step */}
+                    <div className="mt-8 min-h-[400px]">
+                        {currentStep === 1 && (
+                            <TypeSelection selectedType={selectedType} onTypeSelect={setSelectedType} />
+                        )}
+
+                        {currentStep === 2 && <CommonFields formData={formData} onUpdate={updateBaseData} />}
+
+                        {currentStep === 3 && selectedType && (
+                            <TypeSpecificFields
+                                type={selectedType}
+                                formData={formData.type_specific_data || {}}
+                                onUpdate={updateTypeData}
+                            />
+                        )}
+
+                        {currentStep === 4 && <Preview formData={formData as any} onEdit={goToStep} />}
+                    </div>
+
+                    {/* Navigation buttons */}
+                    <FormNavigation
+                        currentStep={currentStep}
+                        canProceed={canProceed}
+                        canGoBack={canGoBack}
+                        isSubmitting={isSubmitting}
+                        isDirty={isDirty}
+                        onNext={navigation.handleNext}
+                        onBack={navigation.handleBack}
+                        onSaveDraft={navigation.handleSaveDraft}
+                        getNextButtonText={navigation.getNextButtonText}
+                        getBackButtonText={navigation.getBackButtonText}
+                        getSaveDraftButtonText={navigation.getSaveDraftButtonText}
+                    />
+                </div>
+            </SheetContent>
+        </Sheet>
+    );
+}
+
+export default BeaconForm;

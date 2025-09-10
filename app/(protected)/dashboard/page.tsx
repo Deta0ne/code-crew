@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { signOut } from '@/lib/services/auth';
 import HomePage from './HomePage';
 import { createClient } from '@/lib/supabase/server';
+import { BeaconForm } from './FormBeacon';
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -17,16 +18,16 @@ export default async function DashboardPage() {
 
     return (
         <div className="container mx-auto p-6">
-            <div className="flex justify-between items-center mb-6">
+            {/* <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Dashboard</h1>
                 <form action={signOut}>
                     <Button type="submit" variant="destructive">
                         Sign Out
                     </Button>
                 </form>
-            </div>
+            </div> */}
 
-            <HomePage />
+            <BeaconForm />
             <div>{profile?.full_name}</div>
             <div>{profile?.avatar_url}</div>
             <div>{profile?.username}</div>
