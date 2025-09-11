@@ -1,6 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { signOut } from '@/lib/services/auth';
-import HomePage from './HomePage';
 import { createClient } from '@/lib/supabase/server';
 import FormBeacon from './FormBeacon';
 

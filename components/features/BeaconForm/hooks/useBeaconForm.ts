@@ -237,10 +237,11 @@ export function useBeaconForm() {
 
   // Computed values
   const completedSteps = useMemo(() => {
-    return [1, 2, 3, 4].filter(step => 
-      validateStep(step as FormStep)
-    ) as FormStep[];
-  }, [validateStep]);
+    // Only include steps up to and including current step
+    return [1, 2, 3, 4]
+      .filter(step => step <= state.currentStep)
+      .filter(step => validateStep(step as FormStep)) as FormStep[];
+  }, [validateStep, state.currentStep]);
 
   const progress = useMemo(() => {
     // Progress based on current step, not completed steps

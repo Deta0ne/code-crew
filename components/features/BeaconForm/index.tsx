@@ -11,10 +11,12 @@ import { FormNavigation } from './FormNavigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
+import type { CompleteProjectForm } from './schemas/common';
+
 interface BeaconFormProps {
     trigger?: React.ReactNode;
-    onSubmit?: (data: any) => Promise<void>;
-    onSaveDraft?: (data: any) => Promise<void>;
+    onSubmit?: (data: CompleteProjectForm) => Promise<void>;
+    onSaveDraft?: (data: CompleteProjectForm) => Promise<void>;
 }
 
 export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSaveDraftProp }: BeaconFormProps) {
@@ -57,7 +59,7 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
 
             // Call external submit handler
             if (onSubmitProp) {
-                await onSubmitProp(submissionData);
+                await onSubmitProp(submissionData as CompleteProjectForm);
             } else {
                 // Default submission logic
                 console.log('Submitting beacon:', submissionData);
@@ -90,7 +92,7 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
 
             // Call external save draft handler
             if (onSaveDraftProp) {
-                await onSaveDraftProp(draftData);
+                await onSaveDraftProp(draftData as CompleteProjectForm);
             } else {
                 // Default save draft logic
                 console.log('Saving draft:', draftData);
@@ -121,7 +123,7 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
         <Sheet>
             <SheetTrigger asChild>{trigger || defaultTrigger}</SheetTrigger>
 
-            <SheetContent className="w-[95%] sm:w-[700px] sm:max-w-none overflow-y-auto bg-white">
+            <SheetContent className="w-[95%] sm:w-[700px] sm:max-w-none overflow-y-auto bg-white rounded-l-2xl">
                 <SheetHeader className="border-b border-gray-100">
                     <SheetTitle className="text-2xl font-semibold text-gray-900 tracking-tight">
                         Create Beacon
@@ -153,7 +155,7 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
                         />
                     )}
 
-                    {currentStep === 4 && <Preview formData={formData as any} onEdit={goToStep} />}
+                    {currentStep === 4 && <Preview formData={formData as CompleteProjectForm} onEdit={goToStep} />}
                 </div>
 
                 {/* Navigation buttons */}
