@@ -3,7 +3,7 @@ export * from './common';
 export * from './type-specific';
 
 import { z } from 'zod';
-import { baseProjectSchema } from './common';
+import { completeProjectSchema } from './common';
 import { getTypeSpecificSchema } from './type-specific';
 import type { ProjectType } from '../types';
 
@@ -11,7 +11,7 @@ import type { ProjectType } from '../types';
 export const createCompleteFormSchema = (projectType: ProjectType) => {
   const typeSpecificSchema = getTypeSpecificSchema(projectType);
   
-  return baseProjectSchema.extend({
+  return completeProjectSchema.extend({
     project_type: z.literal(projectType),
     type_specific_data: typeSpecificSchema.optional()
   });

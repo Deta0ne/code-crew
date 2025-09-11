@@ -1,35 +1,82 @@
-// Type-specific fields component - placeholder
 'use client';
 
-import type { TypeSpecificFieldsProps } from './types';
+import React from 'react';
+import { ProjectType } from './types';
+import {
+    LearningFields,
+    PortfolioFields,
+    OpenSourceFields,
+    HackathonFields,
+    TutorialFields,
+    ResearchFields,
+} from './type-fields';
+import { Badge } from '@/components/ui/badge';
 
-export function TypeSpecificFields({ type, formData, onUpdate, errors }: TypeSpecificFieldsProps) {
+interface TypeSpecificFieldsProps {
+    type: ProjectType;
+    formData: Record<string, unknown>;
+    onUpdate: (data: Record<string, unknown>) => void;
+}
+
+export function TypeSpecificFields({ type, formData, onUpdate }: TypeSpecificFieldsProps) {
+    // Get the appropriate fields component based on project type
+    const FieldsComponent = {
+        learning: LearningFields,
+        portfolio: PortfolioFields,
+        open_source: OpenSourceFields,
+        hackathon: HackathonFields,
+        tutorial: TutorialFields,
+        research: ResearchFields,
+    }[type];
+
+    // Get the type-specific title and description
+    const typeInfo = {
+        learning: {
+            title: 'Learning Project Details',
+            description: 'Define your learning objectives and project structure',
+        },
+        portfolio: {
+            title: 'Portfolio Project Details',
+            description: 'Showcase your skills and project requirements',
+        },
+        open_source: {
+            title: 'Open Source Project Details',
+            description: 'Set contribution guidelines and project standards',
+        },
+        hackathon: {
+            title: 'Hackathon Project Details',
+            description: 'Define competition rules and submission requirements',
+        },
+        tutorial: {
+            title: 'Tutorial Project Details',
+            description: 'Structure your educational content and learning path',
+        },
+        research: {
+            title: 'Research Project Details',
+            description: 'Define research methodology and expected outcomes',
+        },
+    }[type];
+
     return (
-        <div className="space-y-6">
-            <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')} Specific Details
-                </h2>
-                <p className="text-gray-600">
-                    Provide additional information specific to your {type.replace('_', ' ')} project.
-                </p>
+        <div className="space-y-8">
+            {/* Header */}
+            <div>
+                <div className="flex items-center space-x-2 mb-2">
+                    <h2 className="text-lg font-semibold text-gray-900">{typeInfo.title}</h2>
+                    <Badge variant="secondary" className="text-xs">
+                        {type
+                            .split('_')
+                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ')}
+                    </Badge>
+                </div>
+                <p className="text-sm text-gray-600">{typeInfo.description}</p>
             </div>
 
-            <div className="space-y-4">
-                {/* Placeholder content */}
-                <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                    <h3 className="text-lg font-medium text-gray-700 mb-2">
-                        {type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')} Fields
-                    </h3>
-                    <p className="text-gray-500">
-                        This will contain form fields specific to {type.replace('_', ' ')} projects.
-                    </p>
-                    <div className="mt-4 text-sm text-gray-400">
-                        <p>Project type: {type}</p>
-                        <p>Current data: {JSON.stringify(formData, null, 2)}</p>
-                    </div>
-                </div>
-            </div>
+            {/* Type-specific form fields */}
+            <FieldsComponent formData={formData} onUpdate={onUpdate} />
         </div>
     );
 }
+
+export default TypeSpecificFields;

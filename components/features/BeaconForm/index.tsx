@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Button } from '@/components/ui/button';
 
 import type { CompleteProjectForm } from './schemas/common';
+import type { ProjectType } from './types';
 
 interface BeaconFormProps {
     trigger?: React.ReactNode;
@@ -143,7 +144,9 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
 
                 {/* Form content based on current step */}
                 <div className="px-4">
-                    {currentStep === 1 && <TypeSelection selectedType={selectedType} onTypeSelect={setSelectedType} />}
+                    {currentStep === 1 && (
+                        <TypeSelection selectedType={selectedType as ProjectType} onTypeSelect={setSelectedType} />
+                    )}
 
                     {currentStep === 2 && <CommonFields formData={formData} onUpdate={updateBaseData} />}
 

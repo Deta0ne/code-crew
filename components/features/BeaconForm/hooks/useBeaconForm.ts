@@ -1,284 +1,237 @@
+'use client';
+
 import { useReducer, useCallback, useMemo } from 'react';
-import type { 
-  BeaconFormState, 
-  FormAction, 
-  ProjectType, 
-  FormStep,
-  BaseProjectData,
-  TypeSpecificData
-} from '../types';
-import { 
-  getStepSchema, 
-  createStep3Schema, 
-  createCompleteFormSchema 
-} from '../schemas';
+import { ProjectType, FormStep } from '../types';
+import { validateStep, CompleteProjectForm } from '../schemas/common';
 
-// Initial form state
-const initialState: BeaconFormState = {
-  currentStep: 1,
-  selectedType: null,
-  formData: {
-    // Default values
-    max_members: 5,
-    is_beginner_friendly: true,
-    mentoring_available: false,
-    remote_friendly: true,
-    tags: []
-  },
-  stepValidation: {
-    1: false,
-    2: false,
-    3: false,
-    4: false
-  },
-  isDirty: false,
-  isSubmitting: false
-};
-
-// Form reducer
-function formReducer(state: BeaconFormState, action: FormAction): BeaconFormState {
-  switch (action.type) {
-    case 'SET_STEP':
-      return {
-        ...state,
-        currentStep: action.payload
-      };
-      
-    case 'SET_TYPE':
-      return {
-        ...state,
-        selectedType: action.payload,
-        formData: {
-          ...state.formData,
-          project_type: action.payload
-        },
-        isDirty: true
-      };
-      
-    case 'UPDATE_BASE_DATA':
-      return {
-        ...state,
-        formData: {
-          ...state.formData,
-          ...action.payload
-        },
-        isDirty: true
-      };
-      
-    case 'UPDATE_TYPE_DATA':
-      return {
-        ...state,
-        formData: {
-          ...state.formData,
-          type_specific_data: {
-            ...state.formData.type_specific_data,
-            ...action.payload
-          }
-        },
-        isDirty: true
-      };
-      
-    case 'SET_STEP_VALIDATION':
-      return {
-        ...state,
-        stepValidation: {
-          ...state.stepValidation,
-          [action.payload.step]: action.payload.isValid
-        }
-      };
-      
-    case 'SET_SUBMITTING':
-      return {
-        ...state,
-        isSubmitting: action.payload
-      };
-      
-    case 'RESET_FORM':
-      return initialState;
-      
-    default:
-      return state;
-  }
+// State type
+interface BeaconFormState {
+    currentStep: FormStep;
+    selectedType: ProjectType | undefined;
+    formData: Partial<CompleteProjectForm>;
+    isSubmitting: boolean;
+    isDirty: boolean;
+    errors: Record<string, string>;
+    completedSteps: FormStep[];
 }
 
+// Action types
+type BeaconFormAction =
+    | { type: 'SET_TYPE'; payload: ProjectType }
+    | { type: 'UPDATE_BASE_DATA'; payload: Partial<CompleteProjectForm> }
+    | { type: 'UPDATE_TYPE_DATA'; payload: Record<string, unknown> }
+    | { type: 'NEXT_STEP' }
+    | { type: 'PREVIOUS_STEP' }
+    | { type: 'GO_TO_STEP'; payload: FormStep }
+    | { type: 'SET_SUBMITTING'; payload: boolean }
+    | { type: 'SET_ERROR'; payload: { field: string; message: string } }
+    | { type: 'CLEAR_ERROR'; payload: string }
+    | { type: 'RESET_FORM' };
+
+// Initial state
+const initialState: BeaconFormState = {
+    currentStep: 1,
+    selectedType: undefined,
+    formData: {
+        max_members: 2,
+        is_beginner_friendly: false,
+        mentoring_available: false,
+        remote_friendly: true,
+        tags: [],
+    },
+    isSubmitting: false,
+    isDirty: false,
+    errors: {},
+    completedSteps: [],
+};
+
+// Reducer
+function beaconFormReducer(state: BeaconFormState, action: BeaconFormAction): BeaconFormState {
+    switch (action.type) {
+        case 'SET_TYPE':
+            return {
+                ...state,
+                selectedType: action.payload,
+                isDirty: true,
+                completedSteps: updateCompletedSteps(1, state.completedSteps),
+            };
+
+        case 'UPDATE_BASE_DATA': {
+            const newFormData = { ...state.formData, ...action.payload };
+            const validation = validateStep(2, newFormData);
+            return {
+                ...state,
+                formData: newFormData,
+                isDirty: true,
+                completedSteps: validation.success 
+                    ? updateCompletedSteps(2, state.completedSteps)
+                    : state.completedSteps,
+            };
+        }
+
+        case 'UPDATE_TYPE_DATA': {
+            const newTypeData = { ...state.formData.type_specific_data, ...action.payload };
+            const validation = validateStep(3, { type_specific_data: newTypeData }, state.selectedType);
+            return {
+                ...state,
+                formData: {
+                    ...state.formData,
+                    type_specific_data: newTypeData,
+                },
+                isDirty: true,
+                completedSteps: validation.success
+                    ? updateCompletedSteps(3, state.completedSteps)
+                    : state.completedSteps,
+            };
+        }
+
+        case 'NEXT_STEP':
+            return {
+                ...state,
+                currentStep: Math.min(state.currentStep + 1, 4) as FormStep,
+            };
+
+        case 'PREVIOUS_STEP':
+            return {
+                ...state,
+                currentStep: Math.max(state.currentStep - 1, 1) as FormStep,
+            };
+
+        case 'GO_TO_STEP':
+            return {
+                ...state,
+                currentStep: action.payload,
+            };
+
+        case 'SET_SUBMITTING':
+            return {
+                ...state,
+                isSubmitting: action.payload,
+            };
+
+        case 'SET_ERROR':
+            return {
+                ...state,
+                errors: { ...state.errors, [action.payload.field]: action.payload.message },
+            };
+
+        case 'CLEAR_ERROR':
+            const { [action.payload]: _, ...remainingErrors } = state.errors;
+            return {
+                ...state,
+                errors: remainingErrors,
+            };
+
+        case 'RESET_FORM':
+            return initialState;
+
+        default:
+            return state;
+    }
+}
+
+// Helper function to update completed steps
+function updateCompletedSteps(step: FormStep, currentCompleted: FormStep[]): FormStep[] {
+    if (!currentCompleted.includes(step)) {
+        return [...currentCompleted, step].sort() as FormStep[];
+    }
+    return currentCompleted;
+}
+
+// Hook
 export function useBeaconForm() {
-  const [state, dispatch] = useReducer(formReducer, initialState);
+    const [state, dispatch] = useReducer(beaconFormReducer, initialState);
 
-  // Actions
-  const setCurrentStep = useCallback((step: FormStep) => {
-    dispatch({ type: 'SET_STEP', payload: step });
-  }, []);
+    // Computed values
+    const canProceed = useMemo(() => {
+        const validation = validateStep(state.currentStep, {
+            ...state.formData,
+            project_type: state.selectedType,
+        }, state.selectedType);
+        return validation.success;
+    }, [state.currentStep, state.formData, state.selectedType]);
 
-  const setSelectedType = useCallback((type: ProjectType) => {
-    dispatch({ type: 'SET_TYPE', payload: type });
-  }, []);
+    const canGoBack = state.currentStep > 1;
 
-  const updateBaseData = useCallback((data: Partial<BaseProjectData>) => {
-    dispatch({ type: 'UPDATE_BASE_DATA', payload: data });
-  }, []);
+    const progress = useMemo(() => {
+        return ((state.currentStep - 1) / 3) * 100;
+    }, [state.currentStep]);
 
-  const updateTypeData = useCallback((data: Partial<TypeSpecificData['data']>) => {
-    dispatch({ type: 'UPDATE_TYPE_DATA', payload: data });
-  }, []);
+    const isFormComplete = useMemo(() => {
+        return state.completedSteps.length === 4;
+    }, [state.completedSteps]);
 
-  const setStepValidation = useCallback((step: FormStep, isValid: boolean) => {
-    dispatch({ type: 'SET_STEP_VALIDATION', payload: { step, isValid } });
-  }, []);
-
-  const setSubmitting = useCallback((isSubmitting: boolean) => {
-    dispatch({ type: 'SET_SUBMITTING', payload: isSubmitting });
-  }, []);
-
-  const resetForm = useCallback(() => {
-    dispatch({ type: 'RESET_FORM' });
-  }, []);
-
-  // Validation functions
-  const validateCurrentStep = useCallback(() => {
-    const { currentStep, selectedType, formData } = state;
-    
-    try {
-      switch (currentStep) {
-        case 1:
-          return !!selectedType;
-        
-        case 2:
-          const step2Schema = getStepSchema(2);
-          step2Schema.parse(formData);
-          return true;
-        
-        case 3:
-          if (!selectedType) return false;
-          const step3Schema = createStep3Schema(selectedType);
-          step3Schema.parse(formData.type_specific_data || {});
-          return true;
-        
-        case 4:
-          if (!selectedType) return false;
-          const completeSchema = createCompleteFormSchema(selectedType);
-          completeSchema.parse(formData);
-          return true;
-        
-        default:
-          return false;
-      }
-    } catch {
-      return false;
-    }
-  }, [state]);
-
-  const validateStep = useCallback((step: FormStep) => {
-    const { selectedType, formData } = state;
-    
-    try {
-      switch (step) {
-        case 1:
-          return !!selectedType;
-        
-        case 2:
-          const step2Schema = getStepSchema(2);
-          step2Schema.parse(formData);
-          return true;
-        
-        case 3:
-          if (!selectedType) return false;
-          const step3Schema = createStep3Schema(selectedType);
-          step3Schema.parse(formData.type_specific_data || {});
-          return true;
-        
-        case 4:
-          if (!selectedType) return false;
-          const completeSchema = createCompleteFormSchema(selectedType);
-          completeSchema.parse(formData);
-          return true;
-        
-        default:
-          return false;
-      }
-    } catch {
-      return false;
-    }
-  }, [state]);
-
-  // Navigation helpers
-  const canProceed = useMemo(() => {
-    return validateCurrentStep();
-  }, [validateCurrentStep]);
-
-  const canGoBack = useMemo(() => {
-    return state.currentStep > 1;
-  }, [state.currentStep]);
-
-  const nextStep = useCallback(() => {
-    const { currentStep } = state;
-    if (currentStep < 4 && canProceed) {
-      setCurrentStep((currentStep + 1) as FormStep);
-    }
-  }, [state, canProceed, setCurrentStep]);
-
-  const previousStep = useCallback(() => {
-    const { currentStep } = state;
-    if (currentStep > 1) {
-      setCurrentStep((currentStep - 1) as FormStep);
-    }
-  }, [state, setCurrentStep]);
-
-  const goToStep = useCallback((step: FormStep) => {
-    // Can only go to a step if all previous steps are valid
-    const allPreviousStepsValid = Array.from(
-      { length: step - 1 }, 
-      (_, i) => validateStep((i + 1) as FormStep)
-    ).every(Boolean);
-    
-    if (allPreviousStepsValid) {
-      setCurrentStep(step);
-    }
-  }, [validateStep, setCurrentStep]);
-
-  // Computed values
-  const completedSteps = useMemo(() => {
-    // Only include steps up to and including current step
-    return [1, 2, 3, 4]
-      .filter(step => step <= state.currentStep)
-      .filter(step => validateStep(step as FormStep)) as FormStep[];
-  }, [validateStep, state.currentStep]);
-
-  const progress = useMemo(() => {
-    // Progress based on current step, not completed steps
-    return ((state.currentStep - 1) / 3) * 100;
-  }, [state.currentStep]);
-
-  const isFormComplete = useMemo(() => {
-    return completedSteps.length === 4;
-  }, [completedSteps]);
-
-  return {
-    // State
-    ...state,
-    
     // Actions
-    setCurrentStep,
-    setSelectedType,
-    updateBaseData,
-    updateTypeData,
-    setStepValidation,
-    setSubmitting,
-    resetForm,
-    
-    // Navigation
-    nextStep,
-    previousStep,
-    goToStep,
-    canProceed,
-    canGoBack,
-    
-    // Validation
-    validateCurrentStep,
-    validateStep,
-    
-    // Computed
-    completedSteps,
-    progress,
-    isFormComplete
-  };
+    const setSelectedType = useCallback((type: ProjectType) => {
+        dispatch({ type: 'SET_TYPE', payload: type });
+    }, []);
+
+    const updateBaseData = useCallback((data: Partial<CompleteProjectForm>) => {
+        dispatch({ type: 'UPDATE_BASE_DATA', payload: data });
+    }, []);
+
+    const updateTypeData = useCallback((data: Record<string, unknown>) => {
+        dispatch({ type: 'UPDATE_TYPE_DATA', payload: data });
+    }, []);
+
+    const nextStep = useCallback(() => {
+        if (canProceed) {
+            dispatch({ type: 'NEXT_STEP' });
+        }
+    }, [canProceed]);
+
+    const previousStep = useCallback(() => {
+        if (canGoBack) {
+            dispatch({ type: 'PREVIOUS_STEP' });
+        }
+    }, [canGoBack]);
+
+    const goToStep = useCallback((step: FormStep) => {
+        dispatch({ type: 'GO_TO_STEP', payload: step });
+    }, []);
+
+    const setSubmitting = useCallback((isSubmitting: boolean) => {
+        dispatch({ type: 'SET_SUBMITTING', payload: isSubmitting });
+    }, []);
+
+    const setError = useCallback((field: string, message: string) => {
+        dispatch({ type: 'SET_ERROR', payload: { field, message } });
+    }, []);
+
+    const clearError = useCallback((field: string) => {
+        dispatch({ type: 'CLEAR_ERROR', payload: field });
+    }, []);
+
+    const resetForm = useCallback(() => {
+        dispatch({ type: 'RESET_FORM' });
+    }, []);
+
+    return {
+        // State
+        currentStep: state.currentStep,
+        selectedType: state.selectedType,
+        formData: state.formData,
+        isSubmitting: state.isSubmitting,
+        isDirty: state.isDirty,
+        errors: state.errors,
+        completedSteps: state.completedSteps,
+
+        // Computed
+        canProceed,
+        canGoBack,
+        progress,
+        isFormComplete,
+
+        // Actions
+        setSelectedType,
+        updateBaseData,
+        updateTypeData,
+        nextStep,
+        previousStep,
+        goToStep,
+        setSubmitting,
+        setError,
+        clearError,
+        resetForm,
+    };
 }

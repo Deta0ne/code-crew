@@ -1,9 +1,6 @@
-// Type-specific field components - placeholders for now
-// These will be implemented later with actual form fields
-
-export const HackathonFields = () => null;
-export const TutorialFields = () => null;
-export const ResearchFields = () => null;
-export const LearningFields = () => null;
-export const PortfolioFields = () => null;
-export const OpenSourceFields = () => null;
+export { LearningFields } from './LearningFields';
+export { PortfolioFields } from './PortfolioFields';
+export { OpenSourceFields } from './OpenSourceFields';
+export { HackathonFields } from './HackathonFields';
+export { TutorialFields } from './TutorialFields';
+export { ResearchFields } from './ResearchFields';
