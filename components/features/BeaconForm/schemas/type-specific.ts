@@ -13,7 +13,6 @@ export const hackathonSchema = z.object({
     .max(100, 'Hackathon name must not exceed 100 characters'),
   
   submission_url: z
-    .string()
     .url('Invalid submission URL')
     .optional()
     .or(z.literal('')),
@@ -24,7 +23,6 @@ export const hackathonSchema = z.object({
     .optional(),
   
   rules_url: z
-    .string()
     .url()
     .optional()
     .or(z.literal(''))
@@ -129,7 +127,6 @@ export const portfolioSchema = z.object({
     .max(10, 'Cannot have more than 10 deployment requirements'),
   
   demo_url: z
-    .string()
     .url('Invalid demo URL')
     .optional()
     .or(z.literal(''))

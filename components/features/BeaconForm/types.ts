@@ -27,9 +27,9 @@ export const commonFieldsSchema = z.object({
     is_beginner_friendly: z.boolean().default(false),
     mentoring_available: z.boolean().default(false),
     remote_friendly: z.boolean().default(true),
-    github_url: z.string().url().optional(),
-    project_url: z.string().url().optional(),
-    image_url: z.string().url().optional(),
+    github_url: z.url().optional(),
+    project_url: z.url().optional(),
+    image_url: z.url().optional(),
     tags: z.array(z.string()).default([]),
 });
 

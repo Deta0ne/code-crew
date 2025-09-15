@@ -1,17 +1,16 @@
-import { createClient } from '@/lib/supabase/server';
-import FormBeacon from './FormBeacon';
+import { BeaconForm } from '@/components/features/BeaconForm';
 
 export default async function DashboardPage() {
-    const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    // const supabase = await createClient();
+    // const {
+    //     data: { user },
+    // } = await supabase.auth.getUser();
 
-    const { data: profile } = await supabase
-        .from('users')
-        .select('full_name, avatar_url, username')
-        .eq('id', user?.id)
-        .single();
+    // const { data: profile } = await supabase
+    //     .from('users')
+    //     .select('full_name, avatar_url, username')
+    //     .eq('id', user?.id)
+    //     .single();
 
     return (
         <div className="container mx-auto p-6">
@@ -24,10 +23,7 @@ export default async function DashboardPage() {
                 </form>
             </div> */}
 
-            <FormBeacon />
-            <div>{profile?.full_name}</div>
-            <div>{profile?.avatar_url}</div>
-            <div>{profile?.username}</div>
+            <BeaconForm />
         </div>
     );
 }

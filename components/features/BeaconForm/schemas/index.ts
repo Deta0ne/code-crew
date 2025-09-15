@@ -49,7 +49,7 @@ export const submissionSchema = z.object({
   type_specific_data: z.record(z.string(), z.any()).optional(),
   
   // Owner info (added during submission)
-  owner_id: z.string().uuid()
+  owner_id: z.uuid()
 });
 
 export type SubmissionForm = z.infer<typeof submissionSchema>;

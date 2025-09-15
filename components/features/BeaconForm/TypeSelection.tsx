@@ -114,25 +114,6 @@ export function TypeSelection({ selectedType, onTypeSelect }: TypeSelectionProps
                     );
                 })}
             </div>
-
-            {/* Selection Summary */}
-            {selectedType && (
-                <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start space-x-3">
-                        <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                        <div>
-                            <p className="text-blue-900 font-medium text-sm">
-                                {projectTypes.find((type) => type.type === selectedType)?.title} Selected
-                            </p>
-                            <p className="text-blue-700 text-sm mt-1">
-                                You can change this selection at any time during the setup process.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
