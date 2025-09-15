@@ -132,12 +132,115 @@ export async function saveDraftBeacon(input: CreateBeaconInput) {
 }
 
 // Action for form submission with redirect
+export type BeaconResult = {
+    id: string;
+    title: string;
+    description: string;
+    project_type: string;
+    category: string;
+    difficulty: string;
+    max_members: number;
+    current_members: number;
+    is_beginner_friendly: boolean;
+    mentoring_available: boolean;
+    remote_friendly: boolean;
+    tags: string[];
+    created_at: string;
+    owner: {
+        id: string;
+        username: string;
+        full_name: string | null;
+        avatar_url: string | null;
+    };
+};
+
+export const getActiveBeacons = async (limit: number = 20): Promise<BeaconResult[]> => {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+        .from('projects')
+        .select(`
+            id,
+            title,
+            description,
+            project_type,
+            category,
+            difficulty,
+            max_members,
+            current_members,
+            is_beginner_friendly,
+            mentoring_available,
+            remote_friendly,
+            tags,
+            created_at,
+            owner:users(
+                id,
+                username,
+                full_name,
+                avatar_url
+            )
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+    if (error) {
+        console.error('Error fetching active beacons:', error);
+        throw new Error('Failed to fetch active beacons');
+    }
+
+    return (data || []).map(beacon => ({
+        ...beacon,
+        owner: Array.isArray(beacon.owner) ? beacon.owner[0] : beacon.owner
+    })) as BeaconResult[];
+};
+
+export const getUserBeacons = async (userId: string): Promise<BeaconResult[]> => {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+        .from('projects')
+        .select(`
+            id,
+            title,
+            description,
+            project_type,
+            category,
+            difficulty,
+            max_members,
+            current_members,
+            is_beginner_friendly,
+            mentoring_available,
+            remote_friendly,
+            tags,
+            created_at,
+            owner:users(
+                id,
+                username,
+                full_name,
+                avatar_url
+            )
+        `)
+        .eq('owner_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching user beacons:', error);
+        throw new Error('Failed to fetch user beacons');
+    }
+
+    return (data || []).map(beacon => ({
+        ...beacon,
+        owner: Array.isArray(beacon.owner) ? beacon.owner[0] : beacon.owner
+    })) as BeaconResult[];
+};
+
 export async function createBeaconAction(input: CreateBeaconInput) {
     const result = await createBeacon(input);
     
     if (result.success && result.data) {
-        // Redirect to the project page on success
-        redirect(`/project/${result.data.id}`);
+        // Redirect to the beacon page on success
+        redirect(`/beacon/${result.data.id}`);
     }
     
     return result;
