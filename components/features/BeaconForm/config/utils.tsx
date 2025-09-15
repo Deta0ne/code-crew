@@ -1,4 +1,5 @@
-import { GraduationCap, Briefcase, Code, BookOpen, Trophy, FileText, Lightbulb } from 'lucide-react';
+import React from 'react';
+import { Briefcase, GraduationCap, Code, BookOpen, Lightbulb, Trophy, FileText } from 'lucide-react';
 
 export const getProjectTypeIcon = (type: string) => {
     switch (type) {

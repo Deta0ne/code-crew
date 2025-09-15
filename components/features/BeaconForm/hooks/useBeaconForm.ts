@@ -158,7 +158,7 @@ export function useBeaconForm() {
     }, [state.currentStep]);
 
     const isFormComplete = useMemo(() => {
-        return state.completedSteps.length === 4;
+        return state.completedSteps.length === 3;
     }, [state.completedSteps]);
 
     // Actions

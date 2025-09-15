@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 
 import type { CompleteProjectForm } from './schemas/common';
 import type { ProjectType } from './types';
+import { createBeacon, saveDraftBeacon, type CreateBeaconInput } from '@/lib/services/beacon';
 
 interface BeaconFormProps {
     trigger?: React.ReactNode;
@@ -38,7 +39,6 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
         updateTypeData,
         nextStep,
         previousStep,
-        goToStep,
         setSubmitting,
         resetForm,
     } = useBeaconForm();
@@ -57,19 +57,25 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
                 type_specific_data: formData.type_specific_data || {},
             };
 
-            // Call external submit handler
+            // Call external submit handler or use default service
             if (onSubmitProp) {
                 await onSubmitProp(submissionData as CompleteProjectForm);
             } else {
-                // Default submission logic
-                console.log('Submitting beacon:', submissionData);
+                // Use default beacon service
+                const result = await createBeacon(submissionData as CreateBeaconInput);
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to create beacon');
+                }
+
+                console.log('Beacon created successfully:', result.data);
             }
 
             // Reset form after successful submission
             resetForm();
         } catch (error) {
             console.error('Error submitting beacon:', error);
-            // TODO: Add proper error handling
+            // TODO: Add proper error handling (toast notifications)
         } finally {
             setSubmitting(false);
         }
@@ -87,19 +93,25 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
                 ...formData,
                 project_type: selectedType,
                 type_specific_data: formData.type_specific_data || {},
-                status: 'draft',
+                status: 'draft' as const,
             };
 
-            // Call external save draft handler
+            // Call external save draft handler or use default service
             if (onSaveDraftProp) {
                 await onSaveDraftProp(draftData as CompleteProjectForm);
             } else {
-                // Default save draft logic
-                console.log('Saving draft:', draftData);
+                // Use default draft service
+                const result = await saveDraftBeacon(draftData as CreateBeaconInput);
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to save draft');
+                }
+
+                console.log('Draft saved successfully:', result.data);
             }
         } catch (error) {
             console.error('Error saving draft:', error);
-            // TODO: Add proper error handling
+            // TODO: Add proper error handling (toast notifications)
         } finally {
             setSubmitting(false);
         }
