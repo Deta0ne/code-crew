@@ -10,15 +10,22 @@ import {
     TutorialFields,
     ResearchFields,
 } from './type-fields';
+import { Preview } from './Preview';
 import { Badge } from '@/components/ui/badge';
+import type { CompleteProjectForm } from './schemas/common';
 
 interface TypeSpecificFieldsProps {
-    type: ProjectType;
+    type: ProjectType | 'preview';
     formData: Record<string, unknown>;
     onUpdate: (data: Record<string, unknown>) => void;
 }
 
 export function TypeSpecificFields({ type, formData, onUpdate }: TypeSpecificFieldsProps) {
+    // Handle preview mode
+    if (type === 'preview') {
+        return <Preview formData={formData as Partial<CompleteProjectForm>} />;
+    }
+
     // Get the appropriate fields component based on project type
     const FieldsComponent = {
         learning: LearningFields,

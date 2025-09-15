@@ -6,7 +6,6 @@ import { FormStepper } from './FormStepper';
 import { TypeSelection } from './TypeSelection';
 import { CommonFields } from './CommonFields';
 import { TypeSpecificFields } from './TypeSpecificFields';
-import { Preview } from './Preview';
 import { FormNavigation } from './FormNavigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -158,7 +157,18 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
                         />
                     )}
 
-                    {currentStep === 4 && <Preview formData={formData as CompleteProjectForm} onEdit={goToStep} />}
+                    {currentStep === 4 && (
+                        <TypeSpecificFields
+                            type="preview"
+                            formData={{
+                                ...formData,
+                                selectedType,
+                                project_type: selectedType,
+                                ...formData.type_specific_data,
+                            }}
+                            onUpdate={() => {}} // Preview is read-only
+                        />
+                    )}
                 </div>
 
                 {/* Navigation buttons */}
