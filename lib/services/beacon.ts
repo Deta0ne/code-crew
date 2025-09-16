@@ -136,16 +136,26 @@ export type BeaconResult = {
     id: string;
     title: string;
     description: string;
+    short_description: string | null;
     project_type: string;
     category: string;
     difficulty: string;
+    status: string;
     max_members: number;
     current_members: number;
+    view_count: number;
+    application_count: number;
+    bookmark_count: number;
     is_beginner_friendly: boolean;
     mentoring_available: boolean;
     remote_friendly: boolean;
+    github_url: string | null;
+    project_url: string | null;
+    image_url: string | null;
     tags: string[];
+    type_specific_data: Record<string, unknown>;
     created_at: string;
+    updated_at: string;
     owner: {
         id: string;
         username: string;
@@ -163,16 +173,26 @@ export const getActiveBeacons = async (limit: number = 20): Promise<BeaconResult
             id,
             title,
             description,
+            short_description,
             project_type,
             category,
             difficulty,
+            status,
             max_members,
             current_members,
+            view_count,
+            application_count,
+            bookmark_count,
             is_beginner_friendly,
             mentoring_available,
             remote_friendly,
+            github_url,
+            project_url,
+            image_url,
             tags,
+            type_specific_data,
             created_at,
+            updated_at,
             owner:users(
                 id,
                 username,
@@ -204,16 +224,26 @@ export const getUserBeacons = async (userId: string): Promise<BeaconResult[]> =>
             id,
             title,
             description,
+            short_description,
             project_type,
             category,
             difficulty,
+            status,
             max_members,
             current_members,
+            view_count,
+            application_count,
+            bookmark_count,
             is_beginner_friendly,
             mentoring_available,
             remote_friendly,
+            github_url,
+            project_url,
+            image_url,
             tags,
+            type_specific_data,
             created_at,
+            updated_at,
             owner:users(
                 id,
                 username,
@@ -233,6 +263,56 @@ export const getUserBeacons = async (userId: string): Promise<BeaconResult[]> =>
         ...beacon,
         owner: Array.isArray(beacon.owner) ? beacon.owner[0] : beacon.owner
     })) as BeaconResult[];
+};
+
+export const getBeaconById = async (id: string): Promise<BeaconResult | null> => {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+        .from('projects')
+        .select(`
+            id,
+            title,
+            description,
+            short_description,
+            project_type,
+            category,
+            difficulty,
+            status,
+            max_members,
+            current_members,
+            view_count,
+            application_count,
+            bookmark_count,
+            is_beginner_friendly,
+            mentoring_available,
+            remote_friendly,
+            github_url,
+            project_url,
+            image_url,
+            tags,
+            type_specific_data,
+            created_at,
+            updated_at,
+            owner:users(
+                id,
+                username,
+                full_name,
+                avatar_url
+            )
+        `)
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        console.error('Error fetching beacon by ID:', error);
+        return null;
+    }
+
+    return {
+        ...data,
+        owner: Array.isArray(data.owner) ? data.owner[0] : data.owner
+    } as BeaconResult;
 };
 
 export async function createBeaconAction(input: CreateBeaconInput) {
