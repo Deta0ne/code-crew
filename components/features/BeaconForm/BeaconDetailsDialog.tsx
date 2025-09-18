@@ -21,6 +21,7 @@ import { ApplicationInput } from '@/lib/validations/application';
 import type { BeaconResult } from '@/lib/services/beacon';
 import BeaconDetailOne from './BeaconDetailOne';
 import BeaconDetailTwo from './BeaconDetailTwo';
+import { toast } from 'sonner';
 
 interface BeaconDetailsDialogProps {
     beacon: BeaconResult | null;
@@ -63,7 +64,7 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                 onOpenChange(false);
                 setCurrentStep('details');
                 setFormData({});
-                // TODO: Show success message/toast
+                toast.success('Application submitted successfully');
             } else {
                 setError(result.error || 'Failed to submit application');
             }

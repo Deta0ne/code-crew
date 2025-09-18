@@ -176,3 +176,4 @@ export async function getProjectApplications(projectId: string) {
 
     return data || [];
 }
+
