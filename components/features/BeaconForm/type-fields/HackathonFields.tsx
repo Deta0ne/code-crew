@@ -20,6 +20,26 @@ type Props = HackathonFieldsProps & {
 function HackathonFieldsBase({ formData, onUpdate, addItem, removeItem }: Props) {
     return (
         <div className="space-y-8">
+            {/* Hackathon Name */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                        <Trophy className="w-4 h-4 text-blue-600" />
+                        <Label className="text-sm font-medium text-gray-900">Hackathon Name</Label>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                        Required
+                    </Badge>
+                </div>
+                <Input
+                    type="text"
+                    placeholder="Enter hackathon name..."
+                    value={formData.hackathon_name || ''}
+                    onChange={(e) => onUpdate({ hackathon_name: e.target.value })}
+                    className="flex-1"
+                />
+            </div>
+
             {/* Deadline */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">

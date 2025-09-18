@@ -67,6 +67,7 @@ export type OpenSourceFields = z.infer<typeof openSourceFieldsSchema>;
 
 // Hackathon Project Types
 export const hackathonFieldsSchema = z.object({
+    hackathon_name: z.string().min(3, 'Hackathon name must be at least 3 characters'),
     deadline: z.string().min(1, 'Deadline is required'),
     prize_pool: z.array(z.string()).min(1, 'At least one prize detail is required'),
     submission_requirements: z.array(z.string()).min(1, 'At least one submission requirement is required'),
@@ -87,7 +88,7 @@ export type TutorialFields = z.infer<typeof tutorialFieldsSchema>;
 
 // Research Project Types
 export const researchFieldsSchema = z.object({
-    research_area: z.enum(['ai_ml', 'blockchain', 'security', 'systems', 'data_science', 'other']),
+    research_area: z.string().min(10, 'Research area must be at least 10 characters'),
     methodology: z.array(z.string()).min(1, 'At least one methodology step is required'),
     expected_outcomes: z.array(z.string()).min(1, 'At least one expected outcome is required'),
     publication_plan: z.array(z.string()).default([]),

@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Microscope, FileText, Target, BookOpen } from 'lucide-react';
 import { withFieldArray } from './withFieldArray';
 import type { ResearchFields as ResearchFieldsType } from '../types';
@@ -32,22 +31,16 @@ function ResearchFieldsBase({ formData, onUpdate, addItem, removeItem }: Props) 
                         Required
                     </Badge>
                 </div>
-                <Select
-                    value={formData.research_area}
-                    onValueChange={(value) => onUpdate({ research_area: value as ResearchFieldsType['research_area'] })}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select research area" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="ai_ml">AI & Machine Learning</SelectItem>
-                        <SelectItem value="blockchain">Blockchain & Cryptography</SelectItem>
-                        <SelectItem value="security">Security & Privacy</SelectItem>
-                        <SelectItem value="systems">Systems & Networks</SelectItem>
-                        <SelectItem value="data_science">Data Science & Analytics</SelectItem>
-                        <SelectItem value="other">Other (Specify in Description)</SelectItem>
-                    </SelectContent>
-                </Select>
+                <Input
+                    type="text"
+                    placeholder="Describe your research area (e.g., Machine Learning algorithms for healthcare data analysis)"
+                    value={formData.research_area || ''}
+                    onChange={(e) => onUpdate({ research_area: e.target.value })}
+                    className="flex-1"
+                />
+                <p className="text-xs text-gray-500">
+                    Please provide a detailed description of your research area (minimum 10 characters)
+                </p>
             </div>
 
             {/* Methodology */}
