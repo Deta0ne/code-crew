@@ -162,57 +162,88 @@ export type BeaconResult = {
         full_name: string | null;
         avatar_url: string | null;
     };
+    isBookmarked: boolean;
 };
 
-export const getActiveBeacons = async (limit: number = 20): Promise<BeaconResult[]> => {
+export const getActiveBeacons = async (
+    limit: number = 20
+  ): Promise<(BeaconResult & { isBookmarked: boolean })[]> => {
     const supabase = await createClient();
-
-    const { data, error } = await supabase
-        .from('projects')
-        .select(`
-            id,
-            title,
-            description,
-            short_description,
-            project_type,
-            category,
-            difficulty,
-            status,
-            max_members,
-            current_members,
-            view_count,
-            application_count,
-            bookmark_count,
-            is_beginner_friendly,
-            mentoring_available,
-            remote_friendly,
-            github_url,
-            project_url,
-            image_url,
-            tags,
-            type_specific_data,
-            created_at,
-            updated_at,
-            owner:users(
-                id,
-                username,
-                full_name,
-                avatar_url
-            )
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
+  
+    const query = supabase
+      .from('projects')
+      .select(`
+        id,
+        title,
+        description,
+        short_description,
+        project_type,
+        category,
+        difficulty,
+        status,
+        max_members,
+        current_members,
+        view_count,
+        application_count,
+        bookmark_count,
+        is_beginner_friendly,
+        mentoring_available,
+        remote_friendly,
+        github_url,
+        project_url,
+        image_url,
+        tags,
+        type_specific_data,
+        created_at,
+        updated_at,
+        owner:users(
+          id,
+          username,
+          full_name,
+          avatar_url
+        ),
+        project_bookmarks!left(user_id)
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+  
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data, error } = await query;
     if (error) {
         console.error('Error fetching active beacons:', error);
         throw new Error('Failed to fetch active beacons');
-    }
-
+      }
     return (data || []).map(beacon => ({
-        ...beacon,
-        owner: Array.isArray(beacon.owner) ? beacon.owner[0] : beacon.owner
-    })) as BeaconResult[];
+      ...beacon,
+      owner: Array.isArray(beacon.owner) ? beacon.owner[0] : beacon.owner,
+      isBookmarked: beacon.project_bookmarks?.some(
+        (bm: { user_id: string }) => bm.user_id === user?.id
+      ) || false
+    })) as (BeaconResult & { isBookmarked: boolean })[];
+};
+
+export const createBookmark = async (beaconId: string) => {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from('project_bookmarks').insert({
+        project_id: beaconId,
+        user_id: user?.id
+    });
+    if (error) {
+      return { success: false, error: "Bookmark creation failed caused by " + error.message };
+    }
+    return { success: true, message: 'Bookmark created successfully' };
+};
+
+export const deleteBookmark = async (beaconId: string) => {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from('project_bookmarks').delete().eq('project_id', beaconId).eq('user_id', user?.id);
+    if (error) {
+        return { success: false, error: "Bookmark deletion failed caused by " + error.message };
+    }
+    return { success: true, message: 'Bookmark deleted successfully' };
 };
 
 export const getUserBeacons = async (userId: string): Promise<BeaconResult[]> => {
