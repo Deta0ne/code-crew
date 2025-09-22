@@ -1,22 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Users,
-    Calendar,
-    ExternalLink,
-    MessageCircle,
-    Bookmark,
-    ArrowLeft,
-    Loader2,
-    Eye,
-    UserPlus,
-} from 'lucide-react';
+import { Users, Calendar, ExternalLink, MessageCircle, Bookmark, ArrowLeft, Loader2, UserPlus } from 'lucide-react';
 import { getProjectTypeIcon, getProjectTypeLabel, getDifficultyLevel, formatDate } from './config/utils';
 import { submitApplication } from '@/lib/services/application';
+import { createBookmark, deleteBookmark } from '@/lib/services/beacon';
 import { ApplicationInput } from '@/lib/validations/application';
 import type { BeaconResult } from '@/lib/services/beacon';
 import BeaconDetailOne from './BeaconDetailOne';
@@ -34,6 +25,11 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
     const [formData, setFormData] = useState<Partial<ApplicationInput>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [beaconState, setBeaconState] = useState(beacon?.isBookmarked);
+    useEffect(() => {
+        setBeaconState(beacon?.isBookmarked);
+    }, [beacon]);
+
     if (!beacon) return null;
 
     const updateField = (field: keyof ApplicationInput, value: string | number) => {
@@ -93,6 +89,26 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
             setError(null);
         }
         onOpenChange(open);
+    };
+
+    const handleSaveBeacon = async (beaconId: string) => {
+        const result = await createBookmark(beaconId);
+        if (result.success) {
+            setBeaconState(true);
+            toast.success('Beacon bookmarked successfully');
+        } else {
+            toast.error(result.error || 'Failed to bookmark beacon');
+        }
+    };
+
+    const handleUnsaveBeacon = async (beaconId: string) => {
+        const result = await deleteBookmark(beaconId);
+        if (result.success) {
+            setBeaconState(false);
+            toast.success('Beacon unbookmarked successfully');
+        } else {
+            toast.error(result.error || 'Failed to unbookmark beacon');
+        }
     };
 
     const isFormValid = (formData.motivation_message?.length || 0) >= 50;
@@ -168,10 +184,6 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                             {/* Statistics Row */}
                             <div className="flex items-center space-x-6 text-xs text-gray-400">
                                 <div className="flex items-center space-x-1">
-                                    <Eye className="w-3 h-3" />
-                                    <span>{beacon.view_count || 0} views</span>
-                                </div>
-                                <div className="flex items-center space-x-1">
                                     <UserPlus className="w-3 h-3" />
                                     <span>{beacon.application_count || 0} applications</span>
                                 </div>
@@ -213,10 +225,14 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                             </Button>
                             <Button
                                 variant="outline"
-                                className="border-gray-200 text-gray-700 hover:bg-gray-50 h-11 font-medium px-4"
+                                className="border-gray-200 text-gray-700 hover:bg-gray-50 h-11 font-medium px-4 cursor-pointer"
+                                disabled={isSubmitting}
+                                onClick={() =>
+                                    beaconState ? handleUnsaveBeacon(beacon.id) : handleSaveBeacon(beacon.id)
+                                }
                             >
                                 <Bookmark className="w-4 h-4 mr-2" />
-                                Save
+                                {beaconState ? 'Unsave' : 'Save'}
                             </Button>
                             {(beacon.github_url || beacon.project_url) && (
                                 <Button
