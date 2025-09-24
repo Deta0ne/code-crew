@@ -9,7 +9,7 @@ import { Plus } from 'lucide-react';
 import type { BeaconResult } from '@/lib/services/beacon';
 import type { User } from '@supabase/supabase-js';
 
-interface DashboardClientProps {
+interface HomeClientProps {
     beacons: BeaconResult[];
     user: User | null;
     profile: {
@@ -19,7 +19,7 @@ interface DashboardClientProps {
     } | null;
 }
 
-export function DashboardClient({ beacons, profile }: DashboardClientProps) {
+export function HomeClient({ beacons, profile }: HomeClientProps) {
     const [selectedBeacon, setSelectedBeacon] = useState<BeaconResult | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
