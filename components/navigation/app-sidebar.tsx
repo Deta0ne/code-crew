@@ -28,8 +28,8 @@ const data = {
     },
     navMain: [
         {
-            title: 'Dashboard',
-            url: '/dashboard',
+            title: 'Home',
+            url: '/home',
             icon: SquareTerminal,
             isActive: true,
         },
