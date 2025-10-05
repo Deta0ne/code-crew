@@ -58,12 +58,19 @@ export async function submitApplication(input: ApplicationInput) {
                 error: 'You are already a member of this project',
             };
         }
+        // Fetch user profile data
+        const { data: user_profile } = await supabase
+        .from('users')
+        .select('username')
+        .eq('id', user.id)
+        .single();
 
         // 5. Prepare application data
         const applicationData = {
             project_id: validatedData.project_id,
             applicant_id: user.id,
             applied_role_id: validatedData.applied_role_id || null,
+            applicant_name: user_profile?.username,
             motivation_message: validatedData.motivation_message,
             what_they_bring: validatedData.what_they_bring || null,
             what_they_want_to_learn: validatedData.what_they_want_to_learn || null,
