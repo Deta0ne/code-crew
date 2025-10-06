@@ -52,6 +52,7 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                 timezone: formData.timezone || '',
                 portfolio_url: formData.portfolio_url || '',
                 github_url: formData.github_url || '',
+                owner_username: beacon.owner.username,
             };
 
             const result = await submitApplication(applicationData);
@@ -91,8 +92,8 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
         onOpenChange(open);
     };
 
-    const handleSaveBeacon = async (beaconId: string) => {
-        const result = await createBookmark(beaconId);
+    const handleSaveBeacon = async (beacon: { id: string; title: string; project_type: string; status: string }) => {
+        const result = await createBookmark(beacon);
         if (result.success) {
             setBeaconState(true);
             toast.success('Beacon bookmarked successfully');
@@ -228,7 +229,14 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                                 className="border-gray-200 text-gray-700 hover:bg-gray-50 h-11 font-medium px-4 cursor-pointer"
                                 disabled={isSubmitting}
                                 onClick={() =>
-                                    beaconState ? handleUnsaveBeacon(beacon.id) : handleSaveBeacon(beacon.id)
+                                    beaconState
+                                        ? handleUnsaveBeacon(beacon.id)
+                                        : handleSaveBeacon({
+                                              id: beacon.id,
+                                              title: beacon.title,
+                                              project_type: beacon.project_type,
+                                              status: beacon.status,
+                                          })
                                 }
                             >
                                 <Bookmark className="w-4 h-4 mr-2" />

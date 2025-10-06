@@ -12,21 +12,19 @@ import { Button } from '@/components/ui/button';
 
 import type { CompleteProjectForm } from './schemas/common';
 import type { ProjectType } from './types';
-import { createBeacon, saveDraftBeacon, type CreateBeaconInput } from '@/lib/services/beacon';
+import { createBeacon, type CreateBeaconInput } from '@/lib/services/beacon';
 
 interface BeaconFormProps {
     trigger?: React.ReactNode;
     onSubmit?: (data: CompleteProjectForm) => Promise<void>;
-    onSaveDraft?: (data: CompleteProjectForm) => Promise<void>;
 }
 
-export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSaveDraftProp }: BeaconFormProps) {
+export function BeaconForm({ trigger, onSubmit: onSubmitProp }: BeaconFormProps) {
     const {
         currentStep,
         selectedType,
         formData,
         isSubmitting,
-        isDirty,
         canProceed,
         canGoBack,
         completedSteps,
@@ -81,42 +79,6 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
         }
     };
 
-    // Handle save as draft
-    const handleSaveDraft = async () => {
-        if (isSubmitting) return;
-
-        try {
-            setSubmitting(true);
-
-            // Prepare draft data
-            const draftData = {
-                ...formData,
-                project_type: selectedType,
-                type_specific_data: formData.type_specific_data || {},
-                status: 'draft' as const,
-            };
-
-            // Call external save draft handler or use default service
-            if (onSaveDraftProp) {
-                await onSaveDraftProp(draftData as CompleteProjectForm);
-            } else {
-                // Use default draft service
-                const result = await saveDraftBeacon(draftData as CreateBeaconInput);
-
-                if (!result.success) {
-                    throw new Error(result.error || 'Failed to save draft');
-                }
-
-                console.log('Draft saved successfully:', result.data);
-            }
-        } catch (error) {
-            console.error('Error saving draft:', error);
-            // TODO: Add proper error handling (toast notifications)
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     // Form navigation hook
     const navigation = useFormNavigation({
         currentStep,
@@ -126,7 +88,6 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
         onNext: nextStep,
         onBack: previousStep,
         onSubmit: handleSubmit,
-        onSaveDraft: handleSaveDraft,
     });
     // Default trigger button
     const defaultTrigger = <Button>Create Beacon</Button>;
@@ -189,13 +150,10 @@ export function BeaconForm({ trigger, onSubmit: onSubmitProp, onSaveDraft: onSav
                     canProceed={canProceed}
                     canGoBack={canGoBack}
                     isSubmitting={isSubmitting}
-                    isDirty={isDirty}
                     onNext={navigation.handleNext}
                     onBack={navigation.handleBack}
-                    onSaveDraft={navigation.handleSaveDraft}
                     getNextButtonText={navigation.getNextButtonText}
                     getBackButtonText={navigation.getBackButtonText}
-                    getSaveDraftButtonText={navigation.getSaveDraftButtonText}
                 />
             </SheetContent>
         </Sheet>

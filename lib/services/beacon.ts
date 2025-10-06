@@ -13,13 +13,13 @@ import {
 const createBeaconSchema = z.object({
     // Common fields
     ...commonFieldsSchema.shape,
-    
+
     // Project type and type-specific data
     project_type: z.enum(['learning', 'portfolio', 'open_source', 'hackathon', 'tutorial', 'research']),
     type_specific_data: z.record(z.string(), z.unknown()),
-    
-    // Optional status for drafts  
-    status: z.enum(['draft', 'active', 'paused', 'completed', 'cancelled']).optional().default('active'),
+
+    // Optional status
+    status: z.enum(['active', 'paused', 'completed', 'cancelled']).optional().default('active'),
 });
 
 export type CreateBeaconInput = z.infer<typeof createBeaconSchema>;
@@ -123,13 +123,6 @@ export async function createBeacon(input: CreateBeaconInput) {
     }
 }
 
-export async function saveDraftBeacon(input: CreateBeaconInput) {
-    // Reuse the same function but force status to 'draft'
-    return createBeacon({
-        ...input,
-        status: 'draft',
-    });
-}
 
 // Action for form submission with redirect
 export type BeaconResult = {
@@ -223,12 +216,16 @@ export const getActiveBeacons = async (
     })) as (BeaconResult & { isBookmarked: boolean })[];
 };
 
-export const createBookmark = async (beaconId: string) => {
+export const createBookmark = async (beacon: { id: string; title: string; project_type: string; status: string }) => {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('project_bookmarks').insert({
-        project_id: beaconId,
-        user_id: user?.id
+        project_id: beacon.id,
+        user_id: user?.id,
+        title: beacon.title,
+        project_type: beacon.project_type,
+        status: beacon.status,
+        
     });
     if (error) {
       return { success: false, error: "Bookmark creation failed caused by " + error.message };

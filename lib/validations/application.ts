@@ -10,6 +10,7 @@ export const applicationSchema = z.object({
     portfolio_url: z.url('Please enter a valid URL').optional().or(z.literal('')),
     github_url: z.url('Please enter a valid GitHub URL').optional().or(z.literal('')),
     applied_role_id: z.number().optional(),
+    owner_username: z.string().optional(),
 });
 
 export type ApplicationInput = z.infer<typeof applicationSchema>;
