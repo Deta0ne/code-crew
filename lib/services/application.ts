@@ -79,6 +79,7 @@ export async function submitApplication(input: ApplicationInput) {
             portfolio_url: validatedData.portfolio_url || null,
             github_url: validatedData.github_url || null,
             status: 'pending' as const,
+            owner_username: validatedData.owner_username || null,
         };
 
         // 6. Insert application into database
@@ -164,6 +165,7 @@ export async function getProjectApplications(projectId: string) {
             timezone,
             portfolio_url,
             github_url,
+            owner_username,
             created_at,
             applicant:users(
                 id,
@@ -184,3 +186,13 @@ export async function getProjectApplications(projectId: string) {
     return data || [];
 }
 
+export async function deleteApplication(applicationId: string) {
+    const supabase = await createClient();
+    const { error } = await supabase.from('project_applications').delete().eq('id', applicationId);
+    console.log('applicationId', applicationId);
+    if (error) {
+        console.error('Error deleting application:', error);
+        return { success: false, error: 'Failed to delete application' };
+    }
+    return { success: true, message: 'Application deleted successfully' };
+}

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import OwnerTable from '@/components/features/dashboard/OwnerTable';
+import ApplicantTable from '@/components/features/dashboard/ApplicantTable';
 import { ProjectApplication } from '@/components/features/dashboard/types';
 
 export default async function DashboardPage() {
@@ -30,11 +31,7 @@ export default async function DashboardPage() {
                     <OwnerTable owner_data={owner_data} />
                 </TabsContent>
                 <TabsContent value="applicant">
-                    <div>
-                        {applicant_data?.map((application) => (
-                            <div key={application.id}>{application.project_id}</div>
-                        ))}
-                    </div>
+                    <ApplicantTable applicant_data={applicant_data} />
                 </TabsContent>
             </Tabs>
         </div>

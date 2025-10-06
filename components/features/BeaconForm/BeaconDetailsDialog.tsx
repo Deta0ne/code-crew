@@ -52,6 +52,7 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                 timezone: formData.timezone || '',
                 portfolio_url: formData.portfolio_url || '',
                 github_url: formData.github_url || '',
+                owner_username: beacon.owner.username,
             };
 
             const result = await submitApplication(applicationData);

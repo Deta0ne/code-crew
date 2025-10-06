@@ -13,34 +13,52 @@ import {
 } from '@tanstack/react-table';
 
 import { Button } from '@/components/ui/button';
-import {} from '@/components/ui/dropdown-menu';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProjectApplication } from './types';
 import React from 'react';
-import { getColumns } from './owner-columns';
+import { getApplicantColumns } from './applicant-columns';
 import ApplicationDetailsDialog from './ApplicationDetailsDialog';
+import { useRouter } from 'next/navigation';
+import { deleteApplication } from '@/lib/services/application';
+import { toast } from 'sonner';
 
-const OwnerTable = ({ owner_data }: { owner_data: ProjectApplication[] }) => {
+const ApplicantTable = ({ applicant_data }: { applicant_data: ProjectApplication[] }) => {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = React.useState({});
-
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [selectedApplication, setSelectedApplication] = React.useState<ProjectApplication | null>(null);
 
+    const router = useRouter();
+
+    const handleDeleteApplication = async (applicationId: string) => {
+        const result = await deleteApplication(applicationId);
+        if (result.success) {
+            toast.success(result.message);
+            router.refresh();
+        } else {
+            toast.error(result.error);
+        }
+    };
     const columns = React.useMemo(
         () =>
-            getColumns((application: ProjectApplication) => {
-                setSelectedApplication(application);
-                setDialogOpen(true);
-            }),
+            getApplicantColumns(
+                (application: ProjectApplication) => {
+                    setSelectedApplication(application);
+                    setDialogOpen(true);
+                },
+                (applicationId: string) => {
+                    handleDeleteApplication(applicationId);
+                },
+            ),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
     const table = useReactTable({
-        data: owner_data,
+        data: applicant_data,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -50,6 +68,7 @@ const OwnerTable = ({ owner_data }: { owner_data: ProjectApplication[] }) => {
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange: setRowSelection,
+
         state: {
             sorting,
             columnFilters,
@@ -91,7 +110,7 @@ const OwnerTable = ({ owner_data }: { owner_data: ProjectApplication[] }) => {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results.
+                                    No applications found.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -122,10 +141,10 @@ const OwnerTable = ({ owner_data }: { owner_data: ProjectApplication[] }) => {
                 isOpen={dialogOpen}
                 onOpenChange={setDialogOpen}
                 application={selectedApplication}
-                viewType="owner"
+                viewType="applicant"
             />
         </div>
     );
 };
 
-export default OwnerTable;
+export default ApplicantTable;
