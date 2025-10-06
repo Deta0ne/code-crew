@@ -223,12 +223,16 @@ export const getActiveBeacons = async (
     })) as (BeaconResult & { isBookmarked: boolean })[];
 };
 
-export const createBookmark = async (beaconId: string) => {
+export const createBookmark = async (beacon: { id: string; title: string; project_type: string; status: string }) => {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('project_bookmarks').insert({
-        project_id: beaconId,
-        user_id: user?.id
+        project_id: beacon.id,
+        user_id: user?.id,
+        title: beacon.title,
+        project_type: beacon.project_type,
+        status: beacon.status,
+        
     });
     if (error) {
       return { success: false, error: "Bookmark creation failed caused by " + error.message };

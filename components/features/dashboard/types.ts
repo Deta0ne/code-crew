@@ -18,3 +18,13 @@ export type ProjectApplication = {
     created_at: string; // timestamp with time zone
     updated_at: string; // timestamp with time zone
   };
+
+export type ProjectBookmark = {
+    id: string; // uuid
+    project_id: string; // uuid
+    user_id: string; // uuid
+    title: string;
+    project_type: string;
+    status: string;
+    created_at: string; // timestamp with time zone
+  };
