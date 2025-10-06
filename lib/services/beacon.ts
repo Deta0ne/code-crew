@@ -13,13 +13,13 @@ import {
 const createBeaconSchema = z.object({
     // Common fields
     ...commonFieldsSchema.shape,
-    
+
     // Project type and type-specific data
     project_type: z.enum(['learning', 'portfolio', 'open_source', 'hackathon', 'tutorial', 'research']),
     type_specific_data: z.record(z.string(), z.unknown()),
-    
-    // Optional status for drafts  
-    status: z.enum(['draft', 'active', 'paused', 'completed', 'cancelled']).optional().default('active'),
+
+    // Optional status
+    status: z.enum(['active', 'paused', 'completed', 'cancelled']).optional().default('active'),
 });
 
 export type CreateBeaconInput = z.infer<typeof createBeaconSchema>;
@@ -123,13 +123,6 @@ export async function createBeacon(input: CreateBeaconInput) {
     }
 }
 
-export async function saveDraftBeacon(input: CreateBeaconInput) {
-    // Reuse the same function but force status to 'draft'
-    return createBeacon({
-        ...input,
-        status: 'draft',
-    });
-}
 
 // Action for form submission with redirect
 export type BeaconResult = {

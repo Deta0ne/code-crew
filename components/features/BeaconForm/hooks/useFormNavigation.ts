@@ -9,7 +9,6 @@ interface UseFormNavigationProps {
   onNext: () => void;
   onBack: () => void;
   onSubmit: () => Promise<void>;
-  onSaveDraft: () => Promise<void>;
 }
 
 export function useFormNavigation({
@@ -19,8 +18,7 @@ export function useFormNavigation({
   isSubmitting,
   onNext,
   onBack,
-  onSubmit,
-  onSaveDraft
+  onSubmit
 }: UseFormNavigationProps) {
   
   const handleNext = useCallback(async () => {
@@ -39,11 +37,6 @@ export function useFormNavigation({
     if (!canGoBack || isSubmitting) return;
     onBack();
   }, [canGoBack, isSubmitting, onBack]);
-
-  const handleSaveDraft = useCallback(async () => {
-    if (isSubmitting) return;
-    await onSaveDraft();
-  }, [isSubmitting, onSaveDraft]);
 
   // Step labels for UI
   const stepLabels: Record<FormStep, string> = {
@@ -73,9 +66,6 @@ export function useFormNavigation({
     return 'Back';
   };
 
-  const getSaveDraftButtonText = () => {
-    return 'Save as Draft';
-  };
 
 
 
@@ -83,14 +73,12 @@ export function useFormNavigation({
     // Actions
     handleNext,
     handleBack,
-    handleSaveDraft,
-    
+
     // UI helpers
     stepLabels,
     getNextButtonText,
     getBackButtonText,
-    getSaveDraftButtonText,
-    
+
     // State
     canProceed,
     canGoBack,

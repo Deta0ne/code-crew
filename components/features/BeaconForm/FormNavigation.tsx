@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronLeft, ChevronRight, Save, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -10,13 +10,10 @@ interface FormNavigationProps {
     canProceed: boolean;
     canGoBack: boolean;
     isSubmitting: boolean;
-    isDirty: boolean;
     onNext: () => void;
     onBack: () => void;
-    onSaveDraft: () => void;
     getNextButtonText: () => string;
     getBackButtonText: () => string;
-    getSaveDraftButtonText: () => string;
 }
 
 export function FormNavigation({
@@ -24,17 +21,13 @@ export function FormNavigation({
     canProceed,
     canGoBack,
     isSubmitting,
-    isDirty,
     onNext,
     onBack,
-    onSaveDraft,
     getNextButtonText,
     getBackButtonText,
-    getSaveDraftButtonText,
 }: FormNavigationProps) {
     const nextButtonText = getNextButtonText();
     const backButtonText = getBackButtonText();
-    const saveDraftButtonText = getSaveDraftButtonText();
 
     const isLastStep = currentStep === 4;
 
@@ -57,26 +50,6 @@ export function FormNavigation({
                         >
                             <ChevronLeft className="w-4 h-4" />
                             <span className="font-medium">{backButtonText}</span>
-                        </Button>
-                    )}
-                </div>
-
-                {/* Center - Save Draft (if dirty and not last step) */}
-                <div className="flex-1 flex justify-center">
-                    {isDirty && !isLastStep && (
-                        <Button
-                            onClick={onSaveDraft}
-                            variant="ghost"
-                            disabled={isSubmitting}
-                            className={cn(
-                                'inline-flex items-center py-2 cursor-pointer',
-                                'text-gray-600 hover:text-gray-900 hover:bg-gray-100',
-                                'focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                                'transition-all duration-200',
-                            )}
-                        >
-                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            <span className="font-medium text-sm">{saveDraftButtonText}</span>
                         </Button>
                     )}
                 </div>
