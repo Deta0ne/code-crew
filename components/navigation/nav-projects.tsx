@@ -1,89 +1,67 @@
-"use client"
+'use client';
+
+import { Folder } from 'lucide-react';
+import Link from 'next/link';
 
 import {
-  Folder,
-  MoreHorizontal,
-  Share,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react"
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from '@/components/ui/sidebar';
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar"
+type Project = {
+    id: string;
+    title: string;
+    status: string;
+    project_type: string;
+    category: string;
+    difficulty: string;
+    max_members: number;
+    current_members: number;
+    view_count: number;
+    application_count: number;
+    bookmark_count: number;
+    is_beginner_friendly: boolean;
+    mentoring_available: boolean;
+    remote_friendly: boolean;
+    github_url: string | null;
+    project_url: string | null;
+    image_url: string | null;
+    description: string;
+    short_description: string | null;
+    type_specific_data: Record<string, unknown>;
+    tags: string[];
+    created_at: string;
+    updated_at: string;
+    search_vector: string | null;
+};
 
-export function NavProjects({
-  projects,
-}: {
-  projects: {
-    name: string
-    url: string
-    icon: LucideIcon
-  }[]
-}) {
-  const { isMobile } = useSidebar()
-
-  return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
-      <SidebarMenu>
-        {projects.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
-            </SidebarMenuButton>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuAction showOnHover>
-                  <MoreHorizontal />
-                  <span className="sr-only">More</span>
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-48"
-                side={isMobile ? "bottom" : "right"}
-                align={isMobile ? "end" : "start"}
-              >
-                <DropdownMenuItem>
-                  <Folder className="text-muted-foreground" />
-                  <span>View Project</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Share className="text-muted-foreground" />
-                  <span>Share Project</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Trash2 className="text-muted-foreground" />
-                  <span>Delete Project</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton>
-            <MoreHorizontal />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarGroup>
-  )
+export function NavProjects({ projects }: { projects: Project[] }) {
+    return (
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel>Projects</SidebarGroupLabel>
+            <SidebarMenu>
+                {projects.map((project) => (
+                    <SidebarMenuItem key={project.id}>
+                        <SidebarMenuButton asChild>
+                            <Link href={`/beacon/${project.id}`}>
+                                <Folder className="size-4" />
+                                <span className="truncate">{project.title}</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+                {/* <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                        <Link href="/home">
+                            <Plus />
+                            <span>Create Project</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem> */}
+            </SidebarMenu>
+        </SidebarGroup>
+    );
 }
