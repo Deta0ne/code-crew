@@ -17,6 +17,7 @@ import { UserProfile } from '@/types/database';
 import { signOut } from '@/lib/services/auth';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export function NavUser({ user }: { user: UserProfile }) {
     const { isMobile } = useSidebar();
@@ -39,10 +40,13 @@ export function NavUser({ user }: { user: UserProfile }) {
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
-                            <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage src={user.avatar_url || ''} alt={user.full_name || ''} />
-                                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                            </Avatar>
+                            <Image
+                                src={user.avatar_url || '/default-avatar.png'}
+                                alt={user.full_name || 'User Avatar'}
+                                width={32}
+                                height={32}
+                                className="rounded-lg"
+                            />
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-medium">{user.full_name}</span>
                                 <span className="truncate text-xs">{user.username}</span>

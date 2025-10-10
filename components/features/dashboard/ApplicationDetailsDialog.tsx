@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Dialog,
     DialogContent,
@@ -11,12 +12,16 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { ProjectApplication } from './types';
+import { acceptApplication, rejectApplication } from '@/lib/services/application';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ApplicationDetailsDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     application: ProjectApplication | null;
     viewType: 'owner' | 'applicant';
+    onApplicationUpdate?: () => void;
 }
 
 const ApplicationDetailsDialog: React.FC<ApplicationDetailsDialogProps> = ({
@@ -24,13 +29,81 @@ const ApplicationDetailsDialog: React.FC<ApplicationDetailsDialogProps> = ({
     onOpenChange,
     application,
     viewType,
+    onApplicationUpdate,
 }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [reviewNotes, setReviewNotes] = useState('');
+    const [showReviewSection, setShowReviewSection] = useState(false);
+    const [actionType, setActionType] = useState<'accept' | 'reject' | null>(null);
+
     if (!application) {
         return null;
     }
 
     const isOwnerView = viewType === 'owner';
     const isApplicantView = viewType === 'applicant';
+    const canTakeAction = isOwnerView && application.status === 'pending';
+
+    const handleAccept = async () => {
+        if (!application) return;
+
+        setIsLoading(true);
+        try {
+            const result = await acceptApplication(application.id, reviewNotes || undefined);
+
+            if (result.success) {
+                toast.success(result.message);
+                onApplicationUpdate?.();
+                onOpenChange(false);
+            } else {
+                toast.error(result.error);
+            }
+        } catch (error) {
+            console.error('Error accepting application:', error);
+            toast.error('An unexpected error occurred');
+        } finally {
+            setIsLoading(false);
+            setShowReviewSection(false);
+            setActionType(null);
+            setReviewNotes('');
+        }
+    };
+
+    const handleReject = async () => {
+        if (!application) return;
+
+        setIsLoading(true);
+        try {
+            const result = await rejectApplication(application.id, reviewNotes || undefined);
+
+            if (result.success) {
+                toast.success(result.message);
+                onApplicationUpdate?.();
+                onOpenChange(false);
+            } else {
+                toast.error(result.error);
+            }
+        } catch (error) {
+            console.error('Error rejecting application:', error);
+            toast.error('An unexpected error occurred');
+        } finally {
+            setIsLoading(false);
+            setShowReviewSection(false);
+            setActionType(null);
+            setReviewNotes('');
+        }
+    };
+
+    const handleActionClick = (action: 'accept' | 'reject') => {
+        setActionType(action);
+        setShowReviewSection(true);
+    };
+
+    const handleCancel = () => {
+        setShowReviewSection(false);
+        setActionType(null);
+        setReviewNotes('');
+    };
 
     const dialogConfig = {
         owner: {
@@ -236,9 +309,81 @@ const ApplicationDetailsDialog: React.FC<ApplicationDetailsDialogProps> = ({
                     )}
                 </div>
 
-                <DialogFooter className="sm:justify-start mt-1">
+                {/* Review Section */}
+                {showReviewSection && canTakeAction && (
+                    <div className="space-y-4 border-t pt-4">
+                        <h3 className="text-lg font-semibold">
+                            {actionType === 'accept' ? 'Accept Application' : 'Reject Application'}
+                        </h3>
+                        <div className="space-y-2">
+                            <Label htmlFor="review-notes">Review Notes (Optional)</Label>
+                            <Textarea
+                                id="review-notes"
+                                placeholder={
+                                    actionType === 'accept'
+                                        ? 'Add any welcome message or next steps...'
+                                        : 'Add feedback for the applicant...'
+                                }
+                                value={reviewNotes}
+                                onChange={(e) => setReviewNotes(e.target.value)}
+                                rows={3}
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={actionType === 'accept' ? handleAccept : handleReject}
+                                disabled={isLoading}
+                                className={
+                                    actionType === 'accept'
+                                        ? 'bg-green-600 hover:bg-green-700'
+                                        : 'bg-red-600 hover:bg-red-700'
+                                }
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : actionType === 'accept' ? (
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                ) : (
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                )}
+                                {isLoading
+                                    ? 'Processing...'
+                                    : actionType === 'accept'
+                                    ? 'Accept Application'
+                                    : 'Reject Application'}
+                            </Button>
+                            <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+                                Cancel
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                <DialogFooter className="sm:justify-between mt-4">
+                    <div className="flex gap-2">
+                        {canTakeAction && !showReviewSection && (
+                            <>
+                                <Button
+                                    onClick={() => handleActionClick('accept')}
+                                    className="bg-green-600 hover:bg-green-700"
+                                    disabled={isLoading}
+                                >
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Accept
+                                </Button>
+                                <Button
+                                    onClick={() => handleActionClick('reject')}
+                                    variant="destructive"
+                                    disabled={isLoading}
+                                >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Reject
+                                </Button>
+                            </>
+                        )}
+                    </div>
                     <DialogClose asChild>
-                        <Button type="button" variant="secondary">
+                        <Button type="button" variant="secondary" disabled={isLoading}>
                             Close
                         </Button>
                     </DialogClose>

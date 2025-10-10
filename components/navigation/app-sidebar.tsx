@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Bot, Command, Frame, Grid, Home, LifeBuoy, Map, PieChart, Send, Settings2 } from 'lucide-react';
+import { Bot, Command, Grid, Home, LifeBuoy, Send, Settings2 } from 'lucide-react';
 
 import { NavMain } from '@/components/navigation/nav-main';
 import { NavProjects } from '@/components/navigation/nav-projects';
@@ -16,23 +16,50 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useUser } from '@/hooks/useUser';
-import { useAuth } from '@/hooks/useAuth';
 import { UserProfile } from '@/types/database';
 import { usePathname } from 'next/navigation';
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const { user } = useAuth();
+type Project = {
+    id: string;
+    title: string;
+    status: string;
+    project_type: string;
+    category: string;
+    difficulty: string;
+    max_members: number;
+    current_members: number;
+    view_count: number;
+    application_count: number;
+    bookmark_count: number;
+    is_beginner_friendly: boolean;
+    mentoring_available: boolean;
+    remote_friendly: boolean;
+    github_url: string | null;
+    project_url: string | null;
+    image_url: string | null;
+    description: string;
+    short_description: string | null;
+    type_specific_data: Record<string, unknown>;
+    tags: string[];
+    created_at: string;
+    updated_at: string;
+    search_vector: string | null;
+};
 
-    const { data: userProfile, isLoading, isError } = useUser(user?.id);
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+    userProfile?: UserProfile;
+    isLoading?: boolean;
+};
+
+export function AppSidebar({ userProfile, isLoading, ...props }: AppSidebarProps) {
     const pathname = usePathname();
 
     if (isLoading && !userProfile) {
-        return <div>Profil bilgileri yükleniyor...</div>;
+        return <div>Loading...</div>;
     }
 
-    if (isError) {
-        return <div>Bir hata oluştu.</div>;
+    if (!userProfile) {
+        return <div>An error occurred.</div>;
     }
 
     const data = {
@@ -96,23 +123,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 icon: Send,
             },
         ],
-        projects: [
-            {
-                name: 'Design Engineering',
-                url: '#',
-                icon: Frame,
-            },
-            {
-                name: 'Sales & Marketing',
-                url: '#',
-                icon: PieChart,
-            },
-            {
-                name: 'Travel',
-                url: '#',
-                icon: Map,
-            },
-        ],
     };
     return (
         <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
@@ -135,11 +145,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
+                <NavProjects />
                 <NavSecondary items={data.navSecondary} className="mt-auto" />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={userProfile || ({} as UserProfile)} />
+                <NavUser user={userProfile} />
             </SidebarFooter>
         </Sidebar>
     );

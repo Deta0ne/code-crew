@@ -196,3 +196,183 @@ export async function deleteApplication(applicationId: string) {
     }
     return { success: true, message: 'Application deleted successfully' };
 }
+
+export async function acceptApplication(applicationId: string, reviewNotes?: string) {
+    try {
+        const supabase = await createClient();
+        
+        // Get current user (project owner)
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            return { success: false, error: 'Authentication required' };
+        }
+
+        // Get application details
+        const { data: application, error: fetchError } = await supabase
+            .from('project_applications')
+            .select('*, projects(*)')
+            .eq('id', applicationId)
+            .single();
+
+        if (fetchError || !application) {
+            return { success: false, error: 'Application not found' };
+        }
+
+        // Verify user is project owner
+        if (application.projects.owner_id !== user.id) {
+            return { success: false, error: 'Unauthorized: You are not the project owner' };
+        }
+
+        // Check if project has available spots
+        if (application.projects.current_members >= application.projects.max_members) {
+            return { success: false, error: 'Project is full' };
+        }
+
+        // Start transaction: Update application and add member
+        const { error: updateError } = await supabase
+            .from('project_applications')
+            .update({
+                status: 'accepted',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: user.id,
+                review_notes: reviewNotes || null,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', applicationId);
+
+        if (updateError) {
+            return { success: false, error: 'Failed to update application status' };
+        }
+
+        // Add user to project members
+        const { error: memberError } = await supabase
+            .from('project_members')
+            .insert({
+                project_id: application.project_id,
+                user_id: application.applicant_id,
+                assigned_role_id: application.applied_role_id,
+                role: 'member',
+                is_active: true,
+                joined_at: new Date().toISOString(),
+                last_activity_at: new Date().toISOString()
+            });
+
+        if (memberError) {
+            // Rollback application status if member insertion fails
+            await supabase
+                .from('project_applications')
+                .update({
+                    status: 'pending',
+                    reviewed_at: null,
+                    reviewed_by: null,
+                    review_notes: null
+                })
+                .eq('id', applicationId);
+            
+            return { success: false, error: 'Failed to add member to project' };
+        }
+
+        // Update project member count
+        const { error: countError } = await supabase
+            .from('projects')
+            .update({
+                current_members: application.projects.current_members + 1,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', application.project_id);
+
+        if (countError) {
+            console.error('Failed to update project member count:', countError);
+        }
+
+        // Create activity log
+        await supabase
+            .from('project_activities')
+            .insert({
+                project_id: application.project_id,
+                actor_id: user.id,
+                activity_type: 'application_accepted',
+                activity_data: {
+                    applicant_id: application.applicant_id,
+                    applicant_name: application.applicant_name,
+                    application_id: applicationId
+                }
+            });
+
+        return { 
+            success: true, 
+            message: 'Application accepted successfully! User has been added to the project.' 
+        };
+
+    } catch (error) {
+        console.error('Error accepting application:', error);
+        return { success: false, error: 'An unexpected error occurred' };
+    }
+}
+
+export async function rejectApplication(applicationId: string, reviewNotes?: string) {
+    try {
+        const supabase = await createClient();
+        
+        // Get current user (project owner)
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            return { success: false, error: 'Authentication required' };
+        }
+
+        // Get application details
+        const { data: application, error: fetchError } = await supabase
+            .from('project_applications')
+            .select('*, projects(*)')
+            .eq('id', applicationId)
+            .single();
+
+        if (fetchError || !application) {
+            return { success: false, error: 'Application not found' };
+        }
+
+        // Verify user is project owner
+        if (application.projects.owner_id !== user.id) {
+            return { success: false, error: 'Unauthorized: You are not the project owner' };
+        }
+
+        // Update application status
+        const { error: updateError } = await supabase
+            .from('project_applications')
+            .update({
+                status: 'rejected',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: user.id,
+                review_notes: reviewNotes || null,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', applicationId);
+
+        if (updateError) {
+            return { success: false, error: 'Failed to update application status' };
+        }
+
+        // Create activity log
+        await supabase
+            .from('project_activities')
+            .insert({
+                project_id: application.project_id,
+                actor_id: user.id,
+                activity_type: 'application_rejected',
+                activity_data: {
+                    applicant_id: application.applicant_id,
+                    applicant_name: application.applicant_name,
+                    application_id: applicationId
+                }
+            });
+
+        return { 
+            success: true, 
+            message: 'Application rejected successfully.' 
+        };
+
+    } catch (error) {
+        console.error('Error rejecting application:', error);
+        return { success: false, error: 'An unexpected error occurred' };
+    }
+}

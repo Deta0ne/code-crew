@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { SidebarIcon } from 'lucide-react';
 
@@ -21,11 +21,35 @@ import { ThemeToggle } from '@/components/theme-toggle';
 export function SiteHeader() {
     const { toggleSidebar } = useSidebar();
     const pathname = usePathname();
+    const [beaconTitle, setBeaconTitle] = useState<string | null>(null);
 
     const segments = pathname.split('/').filter(Boolean);
 
-    const formatSegment = (str: string) => {
+    useEffect(() => {
+        const isBeaconPage = segments.length >= 2 && segments[0] === 'home' && segments[1];
+
+        if (isBeaconPage) {
+            const metaBeaconTitle = document.querySelector('meta[name="beacon-title"]')?.getAttribute('content');
+            if (metaBeaconTitle) {
+                setBeaconTitle(metaBeaconTitle);
+            } else {
+                const pageTitle = document.title;
+                if (pageTitle && pageTitle !== 'Beacon') {
+                    setBeaconTitle(pageTitle);
+                }
+            }
+        } else {
+            setBeaconTitle(null);
+        }
+    }, [pathname, segments]);
+
+    const formatSegment = (str: string, index: number) => {
         if (!str) return '';
+
+        if (segments[0] === 'home' && index === 1 && beaconTitle) {
+            return beaconTitle;
+        }
+
         if (/^\d+$/.test(str) || str.length > 20) {
             return str;
         }
@@ -57,9 +81,9 @@ export function SiteHeader() {
                                     {index > 0 && <BreadcrumbSeparator />}
                                     <BreadcrumbItem>
                                         {isLast ? (
-                                            <BreadcrumbPage>{formatSegment(segment)}</BreadcrumbPage>
+                                            <BreadcrumbPage>{formatSegment(segment, index)}</BreadcrumbPage>
                                         ) : (
-                                            <BreadcrumbLink href={href}>{formatSegment(segment)}</BreadcrumbLink>
+                                            <BreadcrumbLink href={href}>{formatSegment(segment, index)}</BreadcrumbLink>
                                         )}
                                     </BreadcrumbItem>
                                 </React.Fragment>
