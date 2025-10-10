@@ -46,7 +46,7 @@ export function NavProjects({ projects }: { projects: Project[] }) {
                 {projects.map((project) => (
                     <SidebarMenuItem key={project.id}>
                         <SidebarMenuButton asChild>
-                            <Link href={`/beacon/${project.id}`}>
+                            <Link href={`/home/${project.id}`}>
                                 <Folder className="size-4" />
                                 <span className="truncate">{project.title}</span>
                             </Link>
