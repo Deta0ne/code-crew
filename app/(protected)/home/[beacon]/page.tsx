@@ -1,10 +1,12 @@
 import { getBeaconById, checkUserProjectAccess, getProjectMembers } from '@/lib/services/beacon';
+import { getProjectMessages } from '@/lib/services/messages';
 import { createClient } from '@/lib/supabase/server';
 import { Metadata } from 'next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { RealtimeChat } from '@/components/features/chat/realtime-chat';
 import {
     Users,
     Calendar,
@@ -93,6 +95,14 @@ export default async function BeaconPage({ params }: Props) {
 
     // Get project members
     const projectMembers = await getProjectMembers(beacon);
+
+    // Get user profile for chat
+    const { data: userProfile } = await supabase.from('users').select('username, full_name').eq('id', user.id).single();
+
+    const chatUsername = userProfile?.username || 'Anonymous';
+
+    // Get existing messages
+    const existingMessages = await getProjectMessages(beacon);
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 pt-4">
@@ -242,7 +252,7 @@ export default async function BeaconPage({ params }: Props) {
                 </div>
 
                 {/* Sidebar */}
-                <div className="space-y-6">
+                <div className="lg:col-span-1 space-y-6">
                     {/* Team Members */}
                     <Card>
                         <CardHeader>
@@ -374,7 +384,15 @@ export default async function BeaconPage({ params }: Props) {
                             </div>
                         </CardContent>
                     </Card>
-
+                    {/* Chat Section */}
+                    <div className="lg:col-span-1">
+                        <RealtimeChat
+                            roomName={`project-${beacon}`}
+                            username={chatUsername}
+                            projectId={beacon}
+                            messages={existingMessages}
+                        />
+                    </div>
                     {/* Project Links */}
                     {(beaconData.github_url || beaconData.project_url) && (
                         <Card>
