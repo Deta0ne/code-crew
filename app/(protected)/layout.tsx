@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import getQueryClient from '@/lib/queryClient';
 import { fetchUser } from '@/lib/services/profile';
-import { getOwnerProjects } from '@/lib/services/projects';
+import { getAllUserProjects } from '@/lib/services/projects';
 import { createClient } from '@/lib/supabase/server';
 import Providers from '@/providers/providers';
 import { LayoutWrapper } from './LayoutWrapper';
@@ -22,8 +22,8 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
         });
 
         await queryClient.prefetchQuery({
-            queryKey: ['projects', 'owner'],
-            queryFn: () => getOwnerProjects(),
+            queryKey: ['projects', 'all'],
+            queryFn: () => getAllUserProjects(),
         });
     }
     return (

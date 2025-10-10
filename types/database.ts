@@ -75,6 +75,44 @@ export interface Database {
             created_at?: string
           }
         }
+        project_members: {
+          Row: {
+            id: string
+            project_id: string
+            user_id: string
+            assigned_role_id: number | null
+            role: 'owner' | 'co_lead' | 'member'
+            is_active: boolean | null
+            joined_at: string
+            left_at: string | null
+            last_activity_at: string | null
+            contribution_description: string | null
+          }
+          Insert: {
+            id?: string
+            project_id: string
+            user_id: string
+            assigned_role_id?: number | null
+            role?: 'owner' | 'co_lead' | 'member'
+            is_active?: boolean | null
+            joined_at?: string
+            left_at?: string | null
+            last_activity_at?: string | null
+            contribution_description?: string | null
+          }
+          Update: {
+            id?: string
+            project_id?: string
+            user_id?: string
+            assigned_role_id?: number | null
+            role?: 'owner' | 'co_lead' | 'member'
+            is_active?: boolean | null
+            joined_at?: string
+            left_at?: string | null
+            last_activity_at?: string | null
+            contribution_description?: string | null
+          }
+        }
         skills: {
           Row: {
             id: number
@@ -129,6 +167,7 @@ export interface Database {
         experience_level: 'beginner' | 'intermediate' | 'advanced'
         skill_category: 'frontend' | 'backend' | 'mobile' | 'devops' | 'design' | 'data' | 'ai' | 'fullstack'
         user_role_type: 'frontend_developer' | 'backend_developer' | 'fullstack_developer' | 'mobile_developer' | 'devops_engineer' | 'ui_ux_designer' | 'data_scientist' | 'ai_engineer' | 'product_manager' | 'qa_engineer'
+        member_role: 'owner' | 'co_lead' | 'member'
       }
     }
   }
@@ -138,3 +177,4 @@ export interface Database {
   export type DeveloperRole = Database['public']['Tables']['developer_roles']['Row']
   export type Skill = Database['public']['Tables']['skills']['Row']
   export type UserSkill = Database['public']['Tables']['user_skills']['Row']
+  export type ProjectMember = Database['public']['Tables']['project_members']['Row']

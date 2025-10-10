@@ -48,11 +48,10 @@ type Project = {
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
     userProfile?: UserProfile;
-    projects?: Project[];
     isLoading?: boolean;
 };
 
-export function AppSidebar({ userProfile, projects = [], isLoading, ...props }: AppSidebarProps) {
+export function AppSidebar({ userProfile, isLoading, ...props }: AppSidebarProps) {
     const pathname = usePathname();
 
     if (isLoading && !userProfile) {
@@ -124,7 +123,6 @@ export function AppSidebar({ userProfile, projects = [], isLoading, ...props }: 
                 icon: Send,
             },
         ],
-        projects: projects,
     };
     return (
         <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
@@ -147,7 +145,7 @@ export function AppSidebar({ userProfile, projects = [], isLoading, ...props }: 
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
+                <NavProjects />
                 <NavSecondary items={data.navSecondary} className="mt-auto" />
             </SidebarContent>
             <SidebarFooter>

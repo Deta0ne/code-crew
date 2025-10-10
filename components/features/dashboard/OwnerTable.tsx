@@ -21,7 +21,7 @@ import React from 'react';
 import { getColumns } from './owner-columns';
 import ApplicationDetailsDialog from './ApplicationDetailsDialog';
 
-const OwnerTable = ({ owner_data }: { owner_data: ProjectApplication[] }) => {
+const OwnerTable = ({ owner_data, onDataUpdate }: { owner_data: ProjectApplication[]; onDataUpdate?: () => void }) => {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -123,6 +123,7 @@ const OwnerTable = ({ owner_data }: { owner_data: ProjectApplication[] }) => {
                 onOpenChange={setDialogOpen}
                 application={selectedApplication}
                 viewType="owner"
+                onApplicationUpdate={onDataUpdate}
             />
         </div>
     );

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getOwnerProjects } from '@/lib/services/projects';
+import { getOwnerProjects, getAllUserProjects } from '@/lib/services/projects';
 import { useAuth } from '@/hooks/useAuth';
 
 export const useOwnerProjects = () => {
@@ -12,5 +12,17 @@ export const useOwnerProjects = () => {
         staleTime: 10 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
         
+    });
+};
+
+export const useAllUserProjects = () => {
+    const { user } = useAuth();
+    return useQuery({
+        queryKey: ['projects', 'all'],
+        queryFn: () => getAllUserProjects(),
+        enabled: !!user,
+
+        staleTime: 10 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
     });
 };

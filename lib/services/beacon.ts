@@ -8,6 +8,26 @@ import {
     getTypeSpecificSchema, 
     type ProjectType
 } from '@/components/features/BeaconForm/types';
+import { Database } from '@/types/database';
+
+export type ProjectMemberWithRelations = {
+    id: string;
+    role: Database['public']['Enums']['member_role'];
+    joined_at: string;
+    last_activity_at: string | null;
+    assigned_role_id: number | null;
+    user: {
+        id: string;
+        username: string;
+        full_name: string | null;
+        avatar_url: string | null;
+        experience_level: Database['public']['Enums']['experience_level'];
+    } | null;
+    developer_role: {
+        name: string;
+        role_type: Database['public']['Enums']['user_role_type'];
+    } | null;
+};
 
 // Complete form validation schema
 const createBeaconSchema = z.object({
@@ -292,6 +312,80 @@ export const getUserBeacons = async (userId: string): Promise<BeaconResult[]> =>
         owner: Array.isArray(beacon.owner) ? beacon.owner[0] : beacon.owner
     })) as BeaconResult[];
 };
+
+export async function checkUserProjectAccess(projectId: string, userId: string) {
+    const supabase = await createClient();
+    
+    // Check if user is project owner
+    const { data: project } = await supabase
+        .from('projects')
+        .select('owner_id')
+        .eq('id', projectId)
+        .single();
+    
+    if (project?.owner_id === userId) {
+        return { hasAccess: true, role: 'owner' };
+    }
+    
+    // Check if user is project member
+    const { data: member } = await supabase
+        .from('project_members')
+        .select('role, is_active')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+    
+    if (member) {
+        return { hasAccess: true, role: member.role };
+    }
+    
+    return { hasAccess: false, role: null };
+}
+
+export async function getProjectMembers(projectId: string): Promise<ProjectMemberWithRelations[]> {
+    const supabase = await createClient();
+    
+    const { data, error } = await supabase
+        .from('project_members')
+        .select(`
+            id,
+            role,
+            joined_at,
+            last_activity_at,
+            assigned_role_id,
+            user:users(
+                id,
+                username,
+                full_name,
+                avatar_url,
+                experience_level
+            ),
+            developer_role:developer_roles(
+                name,
+                role_type
+            )
+        `)
+        .eq('project_id', projectId)
+        .eq('is_active', true)
+        .order('joined_at', { ascending: true });
+    
+    if (error) {
+        console.error('Error fetching project members:', error);
+        return [];
+    }
+    
+    // Transform the data to match our type
+    return (data || []).map(item => ({
+        id: item.id,
+        role: item.role,
+        joined_at: item.joined_at,
+        last_activity_at: item.last_activity_at,
+        assigned_role_id: item.assigned_role_id,
+        user: Array.isArray(item.user) ? item.user[0] : item.user,
+        developer_role: Array.isArray(item.developer_role) ? item.developer_role[0] : item.developer_role,
+    }));
+}
 
 export const getBeaconById = async (id: string): Promise<BeaconResult | null> => {
     const supabase = await createClient();

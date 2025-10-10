@@ -1,4 +1,5 @@
-import { getBeaconById } from '@/lib/services/beacon';
+import { getBeaconById, checkUserProjectAccess, getProjectMembers } from '@/lib/services/beacon';
+import { createClient } from '@/lib/supabase/server';
 import { Metadata } from 'next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,8 +53,46 @@ export default async function BeaconPage({ params }: Props) {
         );
     }
 
-    // Check will come
-    const isOwner = true;
+    // Check user access
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mt-2">Please log in to access this project.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const accessResult = await checkUserProjectAccess(beacon, user.id);
+
+    if (!accessResult.hasAccess) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mt-2">
+                        You don&apos;t have permission to access this project. You need to be a member or the owner.
+                    </p>
+                    <Button className="mt-4" asChild>
+                        <a href={`/home`}>Back to Home</a>
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    const isOwner = accessResult.role === 'owner';
+    const userRole = accessResult.role;
+
+    // Get project members
+    const projectMembers = await getProjectMembers(beacon);
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 pt-4">
@@ -67,6 +106,8 @@ export default async function BeaconPage({ params }: Props) {
                         <p className="text-gray-600 dark:text-gray-300">
                             {isOwner
                                 ? 'Manage your project and collaborate with your team'
+                                : userRole === 'co_lead'
+                                ? 'You&apos;re a co-lead of this project! Help manage the team.'
                                 : 'You&apos;re now part of this amazing project!'}
                         </p>
                     </div>
@@ -238,6 +279,44 @@ export default async function BeaconPage({ params }: Props) {
                                     Owner
                                 </Badge>
                             </div>
+
+                            {/* Project Members */}
+                            {projectMembers.map((member) => (
+                                <div
+                                    key={member.id}
+                                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                                >
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage
+                                            src={member.user?.avatar_url || ''}
+                                            alt={member.user?.full_name || ''}
+                                        />
+                                        <AvatarFallback>
+                                            {member.user?.full_name
+                                                ?.split(' ')
+                                                .map((n: string) => n[0])
+                                                .join('') ||
+                                                member.user?.username?.[0]?.toUpperCase() ||
+                                                'U'}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-sm">
+                                            {member.user?.full_name || member.user?.username}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            {member.developer_role?.name || 'Member'} • Joined{' '}
+                                            {new Date(member.joined_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                    <Badge
+                                        variant={member.role === 'co_lead' ? 'default' : 'secondary'}
+                                        className="text-xs capitalize"
+                                    >
+                                        {member.role === 'co_lead' ? 'Co-Lead' : 'Member'}
+                                    </Badge>
+                                </div>
+                            ))}
 
                             {/* Add more members placeholder */}
                             {beaconData.current_members < beaconData.max_members && (
