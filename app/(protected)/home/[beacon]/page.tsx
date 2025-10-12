@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RealtimeChat } from '@/components/features/chat/realtime-chat';
 import {
     Users,
@@ -19,6 +20,8 @@ import {
     ExternalLink,
     Plus,
     UserPlus,
+    Info,
+    Activity,
 } from 'lucide-react';
 
 type Props = {
@@ -105,7 +108,7 @@ export default async function BeaconPage({ params }: Props) {
     const existingMessages = await getProjectMessages(beacon);
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 pt-4">
+        <div className="max-w-7xl space-y-6 pt-4">
             {/* Welcome Header */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg p-6">
                 <div className="flex items-center justify-between">
@@ -138,117 +141,428 @@ export default async function BeaconPage({ params }: Props) {
                 </div>
             </div>
 
+            {/* Main Content with Tabs */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Content */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Quick Actions */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Target className="h-5 w-5" />
-                                Quick Actions
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <Button variant="outline" className="h-20 flex-col gap-2">
-                                    <MessageSquare className="h-5 w-5" />
-                                    <span className="text-sm">Team Chat</span>
-                                </Button>
-                                <Button variant="outline" className="h-20 flex-col gap-2">
-                                    <Calendar className="h-5 w-5" />
-                                    <span className="text-sm">Schedule</span>
-                                </Button>
-                                {beaconData.github_url && (
-                                    <Button variant="outline" className="h-20 flex-col gap-2" asChild>
-                                        <a href={beaconData.github_url} target="_blank" rel="noopener noreferrer">
-                                            <Github className="h-5 w-5" />
-                                            <span className="text-sm">Repository</span>
-                                        </a>
-                                    </Button>
-                                )}
-                                {isOwner && (
-                                    <Button variant="outline" className="h-20 flex-col gap-2">
-                                        <Settings className="h-5 w-5" />
-                                        <span className="text-sm">Settings</span>
-                                    </Button>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="lg:col-span-2">
+                    <Tabs defaultValue="overview" className="w-full">
+                        <TabsList className="grid w-full grid-cols-4">
+                            <TabsTrigger value="overview" className="flex items-center gap-2">
+                                <Info className="h-4 w-4" />
+                                Overview
+                            </TabsTrigger>
+                            <TabsTrigger value="activity" className="flex items-center gap-2">
+                                <Activity className="h-4 w-4" />
+                                Activity
+                            </TabsTrigger>
+                            <TabsTrigger value="chat" className="flex items-center gap-2">
+                                <MessageSquare className="h-4 w-4" />
+                                Chat
+                            </TabsTrigger>
+                            <TabsTrigger value="settings" className="flex items-center gap-2">
+                                <Settings className="h-4 w-4" />
+                                Settings
+                            </TabsTrigger>
+                        </TabsList>
 
-                    {/* Project Overview */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Project Overview</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <h4 className="font-medium mb-2">Description</h4>
-                                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                    {beaconData.description}
-                                </p>
-                            </div>
-
-                            {beaconData.tags && beaconData.tags.length > 0 && (
-                                <div>
-                                    <h4 className="font-medium mb-2">Technologies</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {beaconData.tags.map((tag, index) => (
-                                            <Badge key={index} variant="secondary" className="text-sm">
-                                                {tag}
-                                            </Badge>
-                                        ))}
+                        {/* Overview Tab */}
+                        <TabsContent value="overview" className="space-y-6 mt-6">
+                            {/* Project Overview */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Project Overview</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <h4 className="font-medium mb-2">Description</h4>
+                                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                                            {beaconData.description}
+                                        </p>
                                     </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
 
-                    {/* Next Steps */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <CheckCircle2 className="h-5 w-5" />
-                                Next Steps
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                {isOwner ? (
-                                    <>
+                                    {beaconData.tags && beaconData.tags.length > 0 && (
+                                        <div>
+                                            <h4 className="font-medium mb-2">Technologies</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {beaconData.tags.map((tag, index) => (
+                                                    <Badge key={index} variant="secondary" className="text-sm">
+                                                        {tag}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Next Steps */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                        Next Steps
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-3">
+                                        {isOwner ? (
+                                            <>
+                                                <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                                                    <Clock className="h-4 w-4 text-blue-600" />
+                                                    <span className="text-sm">
+                                                        Set up project milestones and timeline
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                                                    <UserPlus className="h-4 w-4 text-green-600" />
+                                                    <span className="text-sm">
+                                                        Review and approve member applications
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                                                    <MessageSquare className="h-4 w-4 text-purple-600" />
+                                                    <span className="text-sm">Create team communication channels</span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                                                    <Users className="h-4 w-4 text-blue-600" />
+                                                    <span className="text-sm">Introduce yourself to the team</span>
+                                                </div>
+                                                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                                                    <Target className="h-4 w-4 text-green-600" />
+                                                    <span className="text-sm">
+                                                        Review project goals and requirements
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                                                    <Calendar className="h-4 w-4 text-purple-600" />
+                                                    <span className="text-sm">
+                                                        Check upcoming milestones and deadlines
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        {/* Activity Tab */}
+                        <TabsContent value="activity" className="space-y-6 mt-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Activity className="h-5 w-5" />
+                                        Recent Activity
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
                                         <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                                            <Clock className="h-4 w-4 text-blue-600" />
-                                            <span className="text-sm">Set up project milestones and timeline</span>
+                                            <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium">Project created</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {new Date(beaconData.created_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                                            <UserPlus className="h-4 w-4 text-green-600" />
-                                            <span className="text-sm">Review and approve member applications</span>
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                                            <p className="text-sm">More activity coming soon...</p>
                                         </div>
-                                        <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
-                                            <MessageSquare className="h-4 w-4 text-purple-600" />
-                                            <span className="text-sm">Create team communication channels</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                                            <Users className="h-4 w-4 text-blue-600" />
-                                            <span className="text-sm">Introduce yourself to the team</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                                            <Target className="h-4 w-4 text-green-600" />
-                                            <span className="text-sm">Review project goals and requirements</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
-                                            <Calendar className="h-4 w-4 text-purple-600" />
-                                            <span className="text-sm">Check upcoming milestones and deadlines</span>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        {/* Chat Tab */}
+                        <TabsContent value="chat" className="space-y-6 mt-6">
+                            <RealtimeChat
+                                roomName={`project-${beacon}`}
+                                username={chatUsername}
+                                projectId={beacon}
+                                messages={existingMessages}
+                            />
+                        </TabsContent>
+
+                        {/* Settings Tab */}
+                        <TabsContent value="settings" className="space-y-6 mt-6">
+                            {isOwner ? (
+                                <>
+                                    {/* Project Settings */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Settings className="h-5 w-5" />
+                                                Project Settings
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">Project Status</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Change project visibility and status
+                                                    </p>
+                                                </div>
+                                                <Badge className="capitalize">{beaconData.status}</Badge>
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">Team Size</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Maximum number of team members
+                                                    </p>
+                                                </div>
+                                                <Badge variant="outline">{beaconData.max_members} members</Badge>
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">Remote Friendly</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Allow remote collaboration
+                                                    </p>
+                                                </div>
+                                                <Badge variant={beaconData.remote_friendly ? 'default' : 'secondary'}>
+                                                    {beaconData.remote_friendly ? 'Yes' : 'No'}
+                                                </Badge>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Project Links */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <ExternalLink className="h-5 w-5" />
+                                                Project Links
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">Repository</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {beaconData.github_url
+                                                            ? 'GitHub repository linked'
+                                                            : 'No repository linked'}
+                                                    </p>
+                                                </div>
+                                                {beaconData.github_url ? (
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <a
+                                                            href={beaconData.github_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            <Github className="h-4 w-4 mr-2" />
+                                                            View
+                                                        </a>
+                                                    </Button>
+                                                ) : (
+                                                    <Button variant="outline" size="sm" disabled>
+                                                        Add Link
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">Live Project</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {beaconData.project_url
+                                                            ? 'Live project available'
+                                                            : 'No live project linked'}
+                                                    </p>
+                                                </div>
+                                                {beaconData.project_url ? (
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <a
+                                                            href={beaconData.project_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            <ExternalLink className="h-4 w-4 mr-2" />
+                                                            Visit
+                                                        </a>
+                                                    </Button>
+                                                ) : (
+                                                    <Button variant="outline" size="sm" disabled>
+                                                        Add Link
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Member Management */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Users className="h-5 w-5" />
+                                                Member Management
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="p-4 border rounded-lg">
+                                                <div className="space-y-2">
+                                                    {projectMembers.map((member) => (
+                                                        <div
+                                                            key={member.id}
+                                                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <Avatar className="h-8 w-8">
+                                                                    <AvatarImage
+                                                                        src={member.user?.avatar_url || ''}
+                                                                        alt={member.user?.full_name || ''}
+                                                                    />
+                                                                    <AvatarFallback className="text-xs">
+                                                                        {member.user?.full_name
+                                                                            ?.split(' ')
+                                                                            .map((n: string) => n[0])
+                                                                            .join('') ||
+                                                                            member.user?.username?.[0]?.toUpperCase() ||
+                                                                            'U'}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                    <p className="text-sm font-medium">
+                                                                        {member.user?.full_name ||
+                                                                            member.user?.username}
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground capitalize">
+                                                                        {member.role}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                                >
+                                                                    Change Role
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-red-600 border-red-200 hover:bg-red-50"
+                                                                >
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Role Management */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Settings className="h-5 w-5" />
+                                                Role & Permissions
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                    <div>
+                                                        <p className="font-medium">Project Owner</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Full access to all project features and settings
+                                                        </p>
+                                                    </div>
+                                                    <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                                                        Owner
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                    <div>
+                                                        <p className="font-medium">Co-Lead</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Can manage team members and project content
+                                                        </p>
+                                                    </div>
+                                                    <Badge variant="default">Co-Lead</Badge>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                    <div>
+                                                        <p className="font-medium">Member</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Can participate in project discussions and tasks
+                                                        </p>
+                                                    </div>
+                                                    <Badge variant="secondary">Member</Badge>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                                                <h4 className="font-medium mb-2 text-blue-900 dark:text-blue-100">
+                                                    Custom Permissions
+                                                </h4>
+                                                <p className="text-sm text-blue-700 dark:text-blue-300">
+                                                    Advanced permission settings will be available in future updates
+                                                </p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Danger Zone */}
+                                    <Card className="border-red-200 dark:border-red-800">
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-red-600">
+                                                <Settings className="h-5 w-5" />
+                                                Danger Zone
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="flex items-center justify-between p-3 border border-red-200 dark:border-red-800 rounded-lg">
+                                                <div>
+                                                    <p className="font-medium text-red-600">Archive Project</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Hide project from public view
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="text-red-600 border-red-200 hover:bg-red-50"
+                                                >
+                                                    Archive
+                                                </Button>
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 border border-red-200 dark:border-red-800 rounded-lg">
+                                                <div>
+                                                    <p className="font-medium text-red-600">Delete Project</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Permanently delete this project
+                                                    </p>
+                                                </div>
+                                                <Button variant="destructive" size="sm">
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </>
+                            ) : (
+                                <Card>
+                                    <CardContent className="text-center py-8">
+                                        <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p className="text-lg font-medium mb-2">Access Restricted</p>
+                                        <p className="text-muted-foreground">
+                                            Only project owners can access settings.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </TabsContent>
+                    </Tabs>
                 </div>
 
                 {/* Sidebar */}
@@ -384,15 +698,7 @@ export default async function BeaconPage({ params }: Props) {
                             </div>
                         </CardContent>
                     </Card>
-                    {/* Chat Section */}
-                    <div className="lg:col-span-1">
-                        <RealtimeChat
-                            roomName={`project-${beacon}`}
-                            username={chatUsername}
-                            projectId={beacon}
-                            messages={existingMessages}
-                        />
-                    </div>
+
                     {/* Project Links */}
                     {(beaconData.github_url || beaconData.project_url) && (
                         <Card>
