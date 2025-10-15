@@ -28,31 +28,40 @@ export async function submitApplication(input: ApplicationInput) {
             };
         }
 
-        // 3. Check if user already applied to this project
-        const { data: existingApplication } = await supabase
-            .from('project_applications')
-            .select('id, status')
-            .eq('project_id', validatedData.project_id)
-            .eq('applicant_id', user.id)
-            .single();
-
-        if (existingApplication) {
+        // 3. Input validation
+        if (!validatedData.project_id || typeof validatedData.project_id !== 'string') {
             return {
                 success: false,
-                error: `You have already applied to this project (Status: ${existingApplication.status})`,
+                error: 'Invalid project ID',
             };
         }
 
-        // 4. Check if user is already a member
-        const { data: existingMember } = await supabase
-            .from('project_members')
-            .select('id')
-            .eq('project_id', validatedData.project_id)
-            .eq('user_id', user.id)
-            .eq('is_active', true)
-            .single();
+        // 4. Single optimized query to check both application and membership status
+        const [applicationCheck, membershipCheck] = await Promise.all([
+            supabase
+                .from('project_applications')
+                .select('id, status')
+                .eq('project_id', validatedData.project_id)
+                .eq('applicant_id', user.id)
+                .eq('status', 'pending')
+                .maybeSingle(),
+            supabase
+                .from('project_members')
+                .select('id')
+                .eq('project_id', validatedData.project_id)
+                .eq('user_id', user.id)
+                .is('left_at', null)
+                .maybeSingle()
+        ]);
 
-        if (existingMember) {
+        if (applicationCheck.data) {
+            return {
+                success: false,
+                error: 'You have a pending application for this project',
+            };
+        }
+
+        if (membershipCheck.data) {
             return {
                 success: false,
                 error: 'You are already a member of this project',
@@ -244,18 +253,46 @@ export async function acceptApplication(applicationId: string, reviewNotes?: str
             return { success: false, error: 'Failed to update application status' };
         }
 
-        // Add user to project members
-        const { error: memberError } = await supabase
+        // Check if user was previously a member (left before)
+        const { data: previousMember } = await supabase
             .from('project_members')
-            .insert({
-                project_id: application.project_id,
-                user_id: application.applicant_id,
-                assigned_role_id: application.applied_role_id,
-                role: 'member',
-                is_active: true,
-                joined_at: new Date().toISOString(),
-                last_activity_at: new Date().toISOString()
-            });
+            .select('id')
+            .eq('project_id', application.project_id)
+            .eq('user_id', application.applicant_id)
+            .single();
+
+        let memberError;
+        
+        if (previousMember) {
+            // User was previously a member, update their record
+            const { error } = await supabase
+                .from('project_members')
+                .update({
+                    assigned_role_id: application.applied_role_id,
+                    role: 'member',
+                    is_active: true,
+                    left_at: null,
+                    joined_at: new Date().toISOString(),
+                    last_activity_at: new Date().toISOString()
+                })
+                .eq('id', previousMember.id);
+            memberError = error;
+        } else {
+            // New member, insert new record
+            const { error } = await supabase
+                .from('project_members')
+                .insert({
+                    project_id: application.project_id,
+                    user_id: application.applicant_id,
+                    assigned_role_id: application.applied_role_id,
+                    role: 'member',
+                    is_active: true,
+                    left_at: null,
+                    joined_at: new Date().toISOString(),
+                    last_activity_at: new Date().toISOString()
+                });
+            memberError = error;
+        }
 
         if (memberError) {
             // Rollback application status if member insertion fails
@@ -271,33 +308,6 @@ export async function acceptApplication(applicationId: string, reviewNotes?: str
             
             return { success: false, error: 'Failed to add member to project' };
         }
-
-        // Update project member count
-        const { error: countError } = await supabase
-            .from('projects')
-            .update({
-                current_members: application.projects.current_members + 1,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', application.project_id);
-
-        if (countError) {
-            console.error('Failed to update project member count:', countError);
-        }
-
-        // Create activity log
-        await supabase
-            .from('project_activities')
-            .insert({
-                project_id: application.project_id,
-                actor_id: user.id,
-                activity_type: 'application_accepted',
-                activity_data: {
-                    applicant_id: application.applicant_id,
-                    applicant_name: application.applicant_name,
-                    application_id: applicationId
-                }
-            });
 
         return { 
             success: true, 
@@ -351,20 +361,6 @@ export async function rejectApplication(applicationId: string, reviewNotes?: str
         if (updateError) {
             return { success: false, error: 'Failed to update application status' };
         }
-
-        // Create activity log
-        await supabase
-            .from('project_activities')
-            .insert({
-                project_id: application.project_id,
-                actor_id: user.id,
-                activity_type: 'application_rejected',
-                activity_data: {
-                    applicant_id: application.applicant_id,
-                    applicant_name: application.applicant_name,
-                    application_id: applicationId
-                }
-            });
 
         return { 
             success: true, 

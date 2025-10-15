@@ -1,5 +1,26 @@
 import { cn } from '@/lib/utils';
 
+const parseMessageContent = (content: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const parts = content.split(urlRegex);
+
+    return parts.map((part, index) => {
+        if (urlRegex.test(part)) {
+            return {
+                type: 'link',
+                content: part,
+                key: `link-${index}`,
+            };
+        }
+        return {
+            type: 'text',
+            content: part,
+            key: `text-${index}`,
+        };
+    });
+};
+
 interface ChatMessage {
     id: string;
     content: string;
@@ -46,7 +67,29 @@ export const ChatMessageItem = ({ message, isOwnMessage, showHeader }: ChatMessa
                         isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground',
                     )}
                 >
-                    {message.content}
+                    <div className="break-words">
+                        {parseMessageContent(message.content).map((part) => {
+                            if (part.type === 'link') {
+                                return (
+                                    <a
+                                        key={part.key}
+                                        href={part.content}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={cn(
+                                            'underline hover:opacity-80 transition-opacity break-all',
+                                            isOwnMessage
+                                                ? 'text-primary-foreground hover:text-primary-foreground/80'
+                                                : 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300',
+                                        )}
+                                    >
+                                        {part.content}
+                                    </a>
+                                );
+                            }
+                            return <span key={part.key}>{part.content}</span>;
+                        })}
+                    </div>
                 </div>
             </div>
         </div>
