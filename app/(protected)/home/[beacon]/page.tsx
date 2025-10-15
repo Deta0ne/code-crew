@@ -1,13 +1,16 @@
-import { getBeaconById, checkUserProjectAccess, getProjectMembers } from '@/lib/services/beacon';
-import { getProjectMessages } from '@/lib/services/messages';
+import { getBeaconById } from '@/lib/services/beacon';
 import { createClient } from '@/lib/supabase/server';
 import { Metadata } from 'next';
+import type { ProjectPageData } from '@/types/project-page';
+import type { ChatMessage } from '@/hooks/use-realtime-chat';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RealtimeChat } from '@/components/features/chat/realtime-chat';
+import { LeaveProjectButton } from '@/components/features/project/LeaveProjectButton';
+import { RemoveMemberButton } from '@/components/features/project/RemoveMemberButton';
 import {
     Users,
     Calendar,
@@ -22,6 +25,7 @@ import {
     UserPlus,
     Info,
     Activity,
+    UserMinus,
 } from 'lucide-react';
 
 type Props = {
@@ -42,24 +46,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BeaconPage({ params }: Props) {
-    const { beacon } = await params;
-    const beaconData = await getBeaconById(beacon);
-
-    if (!beaconData) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Project Not Found</h2>
-                    <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        The project you&apos;re looking for doesn&apos;t exist.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    // Check user access
+    const { beacon: projectId } = await params;
     const supabase = await createClient();
+
     const {
         data: { user },
     } = await supabase.auth.getUser();
@@ -75,9 +64,42 @@ export default async function BeaconPage({ params }: Props) {
         );
     }
 
-    const accessResult = await checkUserProjectAccess(beacon, user.id);
+    const { data: rpcData } = (await supabase
+        .rpc('get_project_page_data', {
+            p_project_id: projectId,
+            p_user_id: user.id,
+        })
+        .single()) as { data: ProjectPageData | null };
 
-    if (!accessResult.hasAccess) {
+    if (!rpcData) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Project Not Found</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mt-2">
+                        The project you&apos;re looking for doesn&apos;t exist.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    const beaconData = rpcData.project_data;
+    const accessResult = rpcData.user_access[0] || { has_access: false, role: null };
+    const projectMembers = rpcData.members || [];
+    const projectActivities = rpcData.activities || [];
+
+    const existingMessages: ChatMessage[] = (rpcData.messages || []).map((msg) => ({
+        id: msg.id,
+        content: msg.content,
+        user: {
+            name: msg.sender.full_name || msg.sender.username,
+            username: msg.sender.username,
+        },
+        createdAt: msg.created_at,
+    }));
+
+    if (!accessResult.has_access) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
@@ -93,19 +115,10 @@ export default async function BeaconPage({ params }: Props) {
         );
     }
 
-    const isOwner = accessResult.role === 'owner';
+    const isOwner = beaconData.owner.id === user.id;
     const userRole = accessResult.role;
 
-    // Get project members
-    const projectMembers = await getProjectMembers(beacon);
-
-    // Get user profile for chat
-    const { data: userProfile } = await supabase.from('users').select('username, full_name').eq('id', user.id).single();
-
-    const chatUsername = userProfile?.username || 'Anonymous';
-
-    // Get existing messages
-    const existingMessages = await getProjectMessages(beacon);
+    const chatUsername = user.user_metadata.user_name || user.email;
 
     return (
         <div className="max-w-7xl space-y-6 pt-4">
@@ -184,7 +197,7 @@ export default async function BeaconPage({ params }: Props) {
                                         <div>
                                             <h4 className="font-medium mb-2">Technologies</h4>
                                             <div className="flex flex-wrap gap-2">
-                                                {beaconData.tags.map((tag, index) => (
+                                                {beaconData.tags.map((tag: string, index: number) => (
                                                     <Badge key={index} variant="secondary" className="text-sm">
                                                         {tag}
                                                     </Badge>
@@ -260,19 +273,129 @@ export default async function BeaconPage({ params }: Props) {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
-                                        <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                                            <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium">Project created</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {new Date(beaconData.created_at).toLocaleDateString()}
+                                        {projectActivities.length > 0 ? (
+                                            projectActivities.map((activity: ProjectPageData['activities'][0]) => {
+                                                const getActivityIcon = (type: string) => {
+                                                    switch (type) {
+                                                        case 'application_submitted':
+                                                            return <UserPlus className="h-4 w-4 text-blue-600" />;
+                                                        case 'application_accepted':
+                                                            return <CheckCircle2 className="h-4 w-4 text-green-600" />;
+                                                        case 'application_rejected':
+                                                            return <UserMinus className="h-4 w-4 text-red-600" />;
+                                                        case 'member_joined':
+                                                            return <Users className="h-4 w-4 text-green-600" />;
+                                                        case 'member_left':
+                                                            return <UserMinus className="h-4 w-4 text-orange-600" />;
+                                                        case 'status_changed':
+                                                            return <Settings className="h-4 w-4 text-purple-600" />;
+                                                        case 'project_created':
+                                                            return <Plus className="h-4 w-4 text-blue-600" />;
+                                                        default:
+                                                            return <Activity className="h-4 w-4 text-gray-600" />;
+                                                    }
+                                                };
+
+                                                const getActivityMessage = (activity: {
+                                                    activity_type: string;
+                                                    activity_data: Record<string, unknown>;
+                                                    actor: unknown;
+                                                }) => {
+                                                    const actor = Array.isArray(activity.actor)
+                                                        ? activity.actor[0]
+                                                        : activity.actor;
+                                                    const actorName = actor?.full_name || actor?.username || 'Someone';
+                                                    const data = activity.activity_data || {};
+
+                                                    switch (activity.activity_type) {
+                                                        case 'application_submitted':
+                                                            return `${actorName} applied to join the project`;
+                                                        case 'application_accepted':
+                                                            return `${
+                                                                data.applicant_name || 'A member'
+                                                            } was accepted to the project`;
+                                                        case 'application_rejected':
+                                                            return `An application was rejected`;
+                                                        case 'member_joined':
+                                                            return `${actorName} joined the project`;
+                                                        case 'member_left':
+                                                            return `${actorName} left the project`;
+                                                        case 'status_changed':
+                                                            return `Project status changed from ${data.old_status} to ${data.new_status}`;
+                                                        case 'project_created':
+                                                            return `Project was created`;
+                                                        default:
+                                                            return `${actorName} performed an action`;
+                                                    }
+                                                };
+
+                                                const getBgColor = (type: string) => {
+                                                    switch (type) {
+                                                        case 'application_submitted':
+                                                            return 'bg-blue-50 dark:bg-blue-950';
+                                                        case 'application_accepted':
+                                                        case 'member_joined':
+                                                            return 'bg-green-50 dark:bg-green-950';
+                                                        case 'application_rejected':
+                                                        case 'member_left':
+                                                            return 'bg-red-50 dark:bg-red-950';
+                                                        case 'status_changed':
+                                                            return 'bg-purple-50 dark:bg-purple-950';
+                                                        default:
+                                                            return 'bg-gray-50 dark:bg-gray-950';
+                                                    }
+                                                };
+
+                                                return (
+                                                    <div
+                                                        key={activity.id}
+                                                        className={`flex items-center gap-3 p-3 rounded-lg ${getBgColor(
+                                                            activity.activity_type,
+                                                        )}`}
+                                                    >
+                                                        <div className="flex-shrink-0">
+                                                            {getActivityIcon(activity.activity_type)}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium">
+                                                                {getActivityMessage(activity)}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {new Date(activity.created_at).toLocaleString()}
+                                                            </p>
+                                                        </div>
+                                                        {(() => {
+                                                            const actor = Array.isArray(activity.actor)
+                                                                ? activity.actor[0]
+                                                                : activity.actor;
+                                                            return (
+                                                                actor?.avatar_url && (
+                                                                    <Avatar className="h-8 w-8">
+                                                                        <AvatarImage
+                                                                            src={actor.avatar_url}
+                                                                            alt={actor.full_name || actor.username}
+                                                                        />
+                                                                        <AvatarFallback className="text-xs">
+                                                                            {(actor.full_name ||
+                                                                                actor.username ||
+                                                                                'U')[0].toUpperCase()}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                )
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="text-center py-8 text-muted-foreground">
+                                                <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                                                <p className="text-sm">No activity yet</p>
+                                                <p className="text-xs">
+                                                    Activity will appear here as team members interact with the project
                                                 </p>
                                             </div>
-                                        </div>
-                                        <div className="text-center py-8 text-muted-foreground">
-                                            <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                            <p className="text-sm">More activity coming soon...</p>
-                                        </div>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -281,9 +404,9 @@ export default async function BeaconPage({ params }: Props) {
                         {/* Chat Tab */}
                         <TabsContent value="chat" className="space-y-6 mt-6">
                             <RealtimeChat
-                                roomName={`project-${beacon}`}
+                                roomName={`project-${projectId}`}
                                 username={chatUsername}
-                                projectId={beacon}
+                                projectId={projectId}
                                 messages={existingMessages}
                             />
                         </TabsContent>
@@ -408,7 +531,7 @@ export default async function BeaconPage({ params }: Props) {
                                         <CardContent className="space-y-4">
                                             <div className="p-4 border rounded-lg">
                                                 <div className="space-y-2">
-                                                    {projectMembers.map((member) => (
+                                                    {projectMembers.map((member: ProjectPageData['members'][0]) => (
                                                         <div
                                                             key={member.id}
                                                             className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded"
@@ -446,13 +569,16 @@ export default async function BeaconPage({ params }: Props) {
                                                                 >
                                                                     Change Role
                                                                 </Button>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
+                                                                <RemoveMemberButton
+                                                                    projectId={projectId}
+                                                                    memberId={member.id}
+                                                                    memberName={
+                                                                        member.user?.full_name ||
+                                                                        member.user?.username ||
+                                                                        'Unknown'
+                                                                    }
                                                                     className="text-red-600 border-red-200 hover:bg-red-50"
-                                                                >
-                                                                    Remove
-                                                                </Button>
+                                                                />
                                                             </div>
                                                         </div>
                                                     ))}
@@ -551,15 +677,67 @@ export default async function BeaconPage({ params }: Props) {
                                     </Card>
                                 </>
                             ) : (
-                                <Card>
-                                    <CardContent className="text-center py-8">
-                                        <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p className="text-lg font-medium mb-2">Access Restricted</p>
-                                        <p className="text-muted-foreground">
-                                            Only project owners can access settings.
-                                        </p>
-                                    </CardContent>
-                                </Card>
+                                <>
+                                    {/* Member Settings */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Settings className="h-5 w-5" />
+                                                Member Settings
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">Project Role</p>
+                                                    <p className="text-sm text-muted-foreground capitalize">
+                                                        You are a {userRole} in this project
+                                                    </p>
+                                                </div>
+                                                <Badge variant="secondary" className="capitalize">
+                                                    {userRole}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">Member Since</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Joined on {new Date().toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                                <Badge variant="outline">
+                                                    <Calendar className="h-3 w-3 mr-1" />
+                                                    Active
+                                                </Badge>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Leave Project */}
+                                    <Card className="border-orange-200 dark:border-orange-800">
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-orange-600">
+                                                <UserMinus className="h-5 w-5" />
+                                                Leave Project
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                                                <p className="text-sm text-orange-800 dark:text-orange-200 mb-2">
+                                                    You are about to leave this project
+                                                </p>
+                                                <p className="text-xs text-orange-700 dark:text-orange-300">
+                                                    This action cannot be undone. You&apos;ll need to request to join
+                                                    again if you want to rejoin.
+                                                </p>
+                                            </div>
+                                            <LeaveProjectButton
+                                                projectId={projectId}
+                                                className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                </>
                             )}
                         </TabsContent>
                     </Tabs>
@@ -581,68 +759,51 @@ export default async function BeaconPage({ params }: Props) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            {/* Project Owner */}
-                            <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                                <Avatar className="h-10 w-10">
-                                    <AvatarImage
-                                        src={beaconData.owner.avatar_url || ''}
-                                        alt={beaconData.owner.full_name || ''}
-                                    />
-                                    <AvatarFallback>
-                                        {beaconData.owner.full_name
-                                            ?.split(' ')
-                                            .map((n) => n[0])
-                                            .join('') || 'U'}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                    <p className="font-medium text-sm">{beaconData.owner.full_name}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Project Owner</p>
-                                </div>
-                                <Badge variant="secondary" className="text-xs">
-                                    Owner
-                                </Badge>
-                            </div>
-
                             {/* Project Members */}
-                            {projectMembers.map((member) => (
-                                <div
-                                    key={member.id}
-                                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
-                                >
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage
-                                            src={member.user?.avatar_url || ''}
-                                            alt={member.user?.full_name || ''}
-                                        />
-                                        <AvatarFallback>
-                                            {member.user?.full_name
-                                                ?.split(' ')
-                                                .map((n: string) => n[0])
-                                                .join('') ||
-                                                member.user?.username?.[0]?.toUpperCase() ||
-                                                'U'}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-sm">
-                                            {member.user?.full_name || member.user?.username}
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            {member.developer_role?.name || 'Member'} • Joined{' '}
-                                            {new Date(member.joined_at).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                    <Badge
-                                        variant={member.role === 'co_lead' ? 'default' : 'secondary'}
-                                        className="text-xs capitalize"
-                                    >
-                                        {member.role === 'co_lead' ? 'Co-Lead' : 'Member'}
-                                    </Badge>
-                                </div>
-                            ))}
+                            {projectMembers.map((member: ProjectPageData['members'][0]) => {
+                                const isOwner = member.role === 'owner';
+                                const isCoLead = member.role === 'co_lead';
 
-                            {/* Add more members placeholder */}
+                                const bgColor = isOwner ? 'bg-blue-50 dark:bg-blue-950' : 'bg-gray-50 dark:bg-gray-900';
+
+                                const badgeVariant = isOwner ? 'default' : isCoLead ? 'default' : 'secondary';
+
+                                return (
+                                    <div
+                                        key={member.id}
+                                        className={`flex items-center gap-3 p-3 rounded-lg ${bgColor}`}
+                                    >
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage
+                                                src={member.user?.avatar_url || ''}
+                                                alt={member.user?.full_name || ''}
+                                            />
+                                            <AvatarFallback>
+                                                {member.user?.full_name
+                                                    ?.split(' ')
+                                                    .map((n: string) => n[0])
+                                                    .join('') ||
+                                                    member.user?.username?.[0]?.toUpperCase() ||
+                                                    'U'}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <p className="font-medium text-sm">
+                                                {member.user?.full_name || member.user?.username}
+                                            </p>
+                                            {!isOwner && (
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    Joined {new Date(member.joined_at).toLocaleDateString()}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <Badge variant={badgeVariant} className="text-xs capitalize">
+                                            {member.role}
+                                        </Badge>
+                                    </div>
+                                );
+                            })}
+
                             {beaconData.current_members < beaconData.max_members && (
                                 <div className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
                                     <div className="h-10 w-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
@@ -668,7 +829,7 @@ export default async function BeaconPage({ params }: Props) {
                                 <span className="text-sm text-gray-600 dark:text-gray-400">Difficulty</span>
                                 <Badge
                                     className={
-                                        beaconData.difficulty === 'beginner'
+                                        beaconData.difficulty === 'easy'
                                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                                             : beaconData.difficulty === 'intermediate'
                                             ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
