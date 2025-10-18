@@ -23,22 +23,46 @@ export const getProjectTypeIcon = (type: string) => {
 export const getProjectTypeLabel = (type: string) => {
     switch (type) {
         case 'learning':
-            return 'Learning Project';
+            return 'Learning';
         case 'portfolio':
-            return 'Portfolio Project';
+            return 'Portfolio';
         case 'open_source':
-            return 'Open Source Project';
+            return 'Open Source';
         case 'tutorial':
-            return 'Tutorial Project';
+            return 'Tutorial';
         case 'hackathon':
-            return 'Hackathon Project';
+            return 'Hackathon';
         case 'research':
-            return 'Research Project';
+            return 'Research';
         default:
-            return 'Unknown Project';
+            return 'Unknown';
     }
 };
 
+export const getProjectCategoryLabel = (category: string) => {
+    switch (category) {
+        case 'web':
+            return 'Web Development';
+        case 'mobile':
+            return 'Mobile Development';
+        case 'desktop':
+            return 'Desktop Development';
+        case 'ai_ml':
+            return 'AI & Machine Learning';
+        case 'data_science':
+            return 'Data Science';
+        case 'devops':
+            return 'DevOp & Infrastructure';
+        case 'design':
+            return 'Design & UI/UX';
+        case 'blockchain':
+            return 'Blockchain & Web3';
+        case 'game_dev':
+            return 'Game Development';
+        case 'other':
+            return 'Other';
+    }
+};
 export const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
         case 'easy':
@@ -72,7 +96,6 @@ export const getInitials = (name: string | null, username: string) => {
     }
     return username.slice(0, 2).toUpperCase();
 };
-
 export const getDifficultyLevel = (difficulty: string) => {
     switch (difficulty) {
         case 'easy':
@@ -85,10 +108,32 @@ export const getDifficultyLevel = (difficulty: string) => {
             return difficulty;
     }
 };
-
+export const getShowcasePurposeLabel = (showcasePurpose: string) => {
+    switch (showcasePurpose) {
+        case 'job_search':
+            return 'Job Search';
+        case 'freelance':
+            return 'Freelance Work';
+        case 'skill_demonstration':
+            return 'Skill Demonstration';
+    }
+};
+export const getLicenseTypeLabel = (licenseType: string) => {
+    switch (licenseType) {
+        case 'mit':
+            return 'MIT';
+        case 'apache':
+            return 'Apache 2.0';
+        case 'gpl':
+            return 'GPL v3';
+        case 'bsd':
+            return 'BSD';
+        case 'other':
+            return 'Other License';
+    }
+};
 export const getTypeSpecificInfo = (projectType: string, typeSpecificData: Record<string, unknown>) => {
     if (!typeSpecificData || Object.keys(typeSpecificData).length === 0) return null;
-
     switch (projectType) {
         case 'learning':
             return {
@@ -147,7 +192,12 @@ export const getTypeSpecificInfo = (projectType: string, typeSpecificData: Recor
             return {
                 title: 'Open Source Details',
                 fields: [
-                    { label: 'License Type', value: typeSpecificData.license_type },
+                    {
+                        label: 'License Type',
+                        value: typeSpecificData.license_type
+                            ? getLicenseTypeLabel(typeSpecificData.license_type as string)
+                            : null,
+                    },
                     {
                         label: 'Community Goals',
                         value: Array.isArray(typeSpecificData.community_goals)
@@ -218,21 +268,26 @@ export const getTypeSpecificInfo = (projectType: string, typeSpecificData: Recor
             return {
                 title: 'Portfolio Details',
                 fields: [
-                    { label: 'Portfolio Type', value: typeSpecificData.portfolio_type },
                     {
-                        label: 'Showcase Goals',
-                        value: Array.isArray(typeSpecificData.showcase_goals) ? typeSpecificData.showcase_goals : null,
-                    },
-                    {
-                        label: 'Target Companies',
-                        value: Array.isArray(typeSpecificData.target_companies)
-                            ? typeSpecificData.target_companies
+                        label: 'Showcase Purpose',
+                        value: typeSpecificData.showcase_purpose
+                            ? getShowcasePurposeLabel(typeSpecificData.showcase_purpose as string)
                             : null,
                     },
                     {
-                        label: 'Skills to Highlight',
-                        value: Array.isArray(typeSpecificData.skills_to_highlight)
-                            ? typeSpecificData.skills_to_highlight
+                        label: 'Target Audience',
+                        value: Array.isArray(typeSpecificData.target_audience)
+                            ? typeSpecificData.target_audience
+                            : null,
+                    },
+                    {
+                        label: 'Key Features',
+                        value: Array.isArray(typeSpecificData.key_features) ? typeSpecificData.key_features : null,
+                    },
+                    {
+                        label: 'Deployment Requirements',
+                        value: Array.isArray(typeSpecificData.deployment_requirements)
+                            ? typeSpecificData.deployment_requirements
                             : null,
                     },
                 ],

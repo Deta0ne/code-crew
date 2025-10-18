@@ -96,6 +96,7 @@ export async function createBeacon(input: CreateBeaconInput) {
             category: validatedData.category,
             difficulty: validatedData.difficulty,
             max_members: validatedData.max_members,
+            current_members: 1, 
             is_beginner_friendly: validatedData.is_beginner_friendly,
             mentoring_available: validatedData.mentoring_available,
             remote_friendly: validatedData.remote_friendly,
