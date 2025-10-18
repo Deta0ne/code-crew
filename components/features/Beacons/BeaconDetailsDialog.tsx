@@ -5,17 +5,17 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Calendar, ExternalLink, MessageCircle, Bookmark, ArrowLeft, Loader2, UserPlus } from 'lucide-react';
-import { getProjectTypeIcon, getProjectTypeLabel, getDifficultyLevel, formatDate } from './config/utils';
+import { getProjectTypeIcon, getProjectTypeLabel, getDifficultyLevel, formatDate } from '../BeaconForm/config/utils';
 import { submitApplication } from '@/lib/services/application';
 import { createBookmark, deleteBookmark } from '@/lib/services/beacon';
 import { ApplicationInput } from '@/lib/validations/application';
-import type { BeaconResult } from '@/lib/services/beacon';
 import BeaconDetailOne from './BeaconDetailOne';
 import BeaconDetailTwo from './BeaconDetailTwo';
 import { toast } from 'sonner';
+import { ProjectWithMembers } from '@/types/database';
 
 interface BeaconDetailsDialogProps {
-    beacon: BeaconResult | null;
+    beacon: ProjectWithMembers | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -25,11 +25,10 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
     const [formData, setFormData] = useState<Partial<ApplicationInput>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [beaconState, setBeaconState] = useState(beacon?.isBookmarked);
+    const [beaconState, setBeaconState] = useState(false);
     useEffect(() => {
-        setBeaconState(beacon?.isBookmarked);
+        setBeaconState(false);
     }, [beacon]);
-
     if (!beacon) return null;
 
     const updateField = (field: keyof ApplicationInput, value: string | number) => {
@@ -92,7 +91,7 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
         onOpenChange(open);
     };
 
-    const handleSaveBeacon = async (beacon: { id: string; title: string; project_type: string; status: string }) => {
+    const handleSaveBeacon = async (beacon: ProjectWithMembers) => {
         const result = await createBookmark(beacon);
         if (result.success) {
             setBeaconState(true);
@@ -228,26 +227,17 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                                 variant="outline"
                                 className="border-gray-200 text-gray-700 hover:bg-gray-50 h-11 font-medium px-4 cursor-pointer"
                                 disabled={isSubmitting}
-                                onClick={() =>
-                                    beaconState
-                                        ? handleUnsaveBeacon(beacon.id)
-                                        : handleSaveBeacon({
-                                              id: beacon.id,
-                                              title: beacon.title,
-                                              project_type: beacon.project_type,
-                                              status: beacon.status,
-                                          })
-                                }
+                                onClick={() => (beaconState ? handleUnsaveBeacon(beacon.id) : handleSaveBeacon(beacon))}
                             >
                                 <Bookmark className="w-4 h-4 mr-2" />
                                 {beaconState ? 'Unsave' : 'Save'}
                             </Button>
-                            {(beacon.github_url || beacon.project_url) && (
+                            {beacon.github_url && (
                                 <Button
                                     variant="outline"
                                     size="icon"
                                     className="border-gray-200 text-gray-700 hover:bg-gray-50 h-11 w-11"
-                                    onClick={() => window.open(beacon.project_url || beacon.github_url || '', '_blank')}
+                                    onClick={() => window.open(beacon.github_url || '', '_blank')}
                                 >
                                     <ExternalLink className="w-4 h-4" />
                                 </Button>

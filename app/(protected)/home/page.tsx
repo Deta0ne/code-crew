@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
-import { HomeClient } from './HomeClient';
-import { getActiveBeacons, type BeaconResult } from '@/lib/services/beacon';
+import { HomeClient } from '@/components/features/Beacons/HomeClient';
+import { getActiveBeaconsRPC } from '@/lib/services/beacon';
+import { ProjectWithMembers } from '@/types/database';
 
 export default async function HomePage() {
     const supabase = await createClient();
@@ -14,12 +15,12 @@ export default async function HomePage() {
         .eq('id', user?.id)
         .single();
 
-    let beacons: BeaconResult[] = [];
+    let beacons: ProjectWithMembers[] | undefined = undefined;
     try {
-        beacons = await getActiveBeacons(10);
+        beacons = await getActiveBeaconsRPC(10);
     } catch (error) {
         console.error('Failed to fetch beacons:', error);
     }
 
-    return <HomeClient beacons={beacons} user={user} profile={profile} />;
+    return <HomeClient beacons={beacons || []} profile={profile} />;
 }

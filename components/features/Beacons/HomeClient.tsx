@@ -2,16 +2,14 @@
 
 import React, { useState } from 'react';
 import { BeaconForm } from '@/components/features/BeaconForm';
-import { BeaconCard } from '@/components/features/BeaconForm/BeaconCard';
-import { BeaconDetailsDialog } from '@/components/features/BeaconForm/BeaconDetailsDialog';
+import { BeaconCard } from '@/components/features/Beacons/BeaconCard';
+import { BeaconDetailsDialog } from '@/components/features/Beacons/BeaconDetailsDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import type { BeaconResult } from '@/lib/services/beacon';
-import type { User } from '@supabase/supabase-js';
+import { ProjectWithMembers } from '@/types/database';
 
 interface HomeClientProps {
-    beacons: BeaconResult[];
-    user: User | null;
+    beacons: ProjectWithMembers[];
     profile: {
         full_name: string | null;
         avatar_url: string | null;
@@ -20,10 +18,10 @@ interface HomeClientProps {
 }
 
 export function HomeClient({ beacons, profile }: HomeClientProps) {
-    const [selectedBeacon, setSelectedBeacon] = useState<BeaconResult | null>(null);
+    const [selectedBeacon, setSelectedBeacon] = useState<ProjectWithMembers | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const handleViewDetails = (beacon: BeaconResult) => {
+    const handleViewDetails = (beacon: ProjectWithMembers) => {
         setSelectedBeacon(beacon);
         setDialogOpen(true);
     };
