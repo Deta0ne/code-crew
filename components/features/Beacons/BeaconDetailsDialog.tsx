@@ -5,7 +5,13 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Calendar, ExternalLink, MessageCircle, Bookmark, ArrowLeft, Loader2, UserPlus } from 'lucide-react';
-import { getProjectTypeIcon, getProjectTypeLabel, getDifficultyLevel, formatDate } from '../BeaconForm/config/utils';
+import {
+    getProjectTypeIcon,
+    getProjectTypeLabel,
+    getDifficultyLevel,
+    formatDate,
+    getProjectCategoryLabel,
+} from '../BeaconForm/config/utils';
 import { submitApplication } from '@/lib/services/application';
 import { createBookmark, deleteBookmark } from '@/lib/services/beacon';
 import { ApplicationInput } from '@/lib/validations/application';
@@ -116,30 +122,30 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
 
     return (
         <Dialog open={open} onOpenChange={handleDialogClose}>
-            <DialogContent className="p-0 bg-white border border-gray-100 shadow-2xl max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+            <DialogContent className="p-0 bg-background border border-border shadow-2xl max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
                 {/* Header Section */}
-                <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+                <div className="px-4 pt-4 border-b border-border bg-card">
                     <div className="flex items-center space-x-4 mb-4">
                         {currentStep === 'application' && (
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={goBackToDetails}
-                                className="h-8 w-8 hover:bg-gray-100"
+                                className="h-8 w-8 hover:bg-muted dark:hover:bg-muted"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                             </Button>
                         )}
                         <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-gray-50 rounded-lg">
+                            <div className="p-2 bg-muted rounded-lg dark:bg-muted/60">
                                 {currentStep === 'details' ? (
                                     getProjectTypeIcon(beacon.project_type)
                                 ) : (
-                                    <MessageCircle className="w-5 h-5 text-gray-600" />
+                                    <MessageCircle className="w-5 h-5 text-muted-foreground" />
                                 )}
                             </div>
                             <div>
-                                <DialogTitle className="text-xl font-semibold text-gray-900">
+                                <DialogTitle className="text-xl font-semibold text-foreground">
                                     {currentStep === 'details' ? beacon.title : 'Join Project'}
                                 </DialogTitle>
                                 <DialogDescription className="sr-only">
@@ -148,22 +154,28 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                                         : 'Application form to join the project'}
                                 </DialogDescription>
                                 {currentStep === 'details' ? (
-                                    <div className="flex items-center space-x-3 mt-1">
+                                    <div className="flex items-center space-x-3 mt-1 animate-in fade-in duration-300">
                                         <Badge
                                             variant="outline"
-                                            className="text-xs font-medium text-gray-500 border-gray-200"
+                                            className="text-xs font-medium text-muted-foreground border-border"
                                         >
                                             {getProjectTypeLabel(beacon.project_type)}
                                         </Badge>
                                         <Badge
                                             variant="outline"
-                                            className="text-xs font-medium text-gray-600 border-gray-200 bg-gray-50"
+                                            className="text-xs font-medium text-muted-foreground border-border bg-muted/50 dark:bg-muted/30"
                                         >
                                             {getDifficultyLevel(beacon.difficulty)}
                                         </Badge>
+                                        <Badge
+                                            variant="outline"
+                                            className="text-xs font-medium text-muted-foreground border-border bg-muted/50 dark:bg-muted/30"
+                                        >
+                                            {getProjectCategoryLabel(beacon.category)}
+                                        </Badge>
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-gray-500 mt-1">
+                                    <p className="text-sm text-muted-foreground mt-1 animate-in fade-in duration-300">
                                         Apply to join &quot;{beacon.title}&quot;
                                     </p>
                                 )}
@@ -173,22 +185,18 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
 
                     {/* Metadata Row - Only on details step */}
                     {currentStep === 'details' && (
-                        <div className="space-y-3">
-                            <div className="flex items-center space-x-8 text-sm text-gray-500">
+                        <div className="space-y-3 animate-in fade-in duration-300">
+                            <div className="flex items-center justify-between text-sm text-muted-foreground pb-2">
                                 <div className="flex items-center space-x-2">
-                                    <Users className="w-4 h-4 text-gray-400" />
+                                    <Users className="w-4 h-4 text-muted-foreground/60" />
                                     <span>
-                                        {beacon.current_members} of {beacon.max_members} members
+                                        {beacon.current_members} of {beacon.max_members}
                                     </span>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                    <Calendar className="w-4 h-4 text-muted-foreground/60" />
                                     <span>{formatDate(beacon.created_at)}</span>
                                 </div>
-                            </div>
-
-                            {/* Statistics Row */}
-                            <div className="flex items-center space-x-6 text-xs text-gray-400">
                                 <div className="flex items-center space-x-1">
                                     <UserPlus className="w-3 h-3" />
                                     <span>{beacon.application_count || 0} applications</span>
@@ -206,24 +214,28 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                 <div className="relative flex-1 overflow-hidden">
                     {currentStep === 'details' ? (
                         /* Step 1: Project Details - Dynamic Height */
-                        <BeaconDetailOne beacon={beacon} />
+                        <div className="animate-in fade-in duration-300 ease-out">
+                            <BeaconDetailOne beacon={beacon} />
+                        </div>
                     ) : (
                         /* Step 2: Application Form - Fixed Height */
-                        <BeaconDetailTwo
-                            formData={formData}
-                            updateField={updateField}
-                            handleSubmit={handleSubmit}
-                            error={error}
-                        />
+                        <div className="animate-in fade-in duration-300 ease-out">
+                            <BeaconDetailTwo
+                                formData={formData}
+                                updateField={updateField}
+                                handleSubmit={handleSubmit}
+                                error={error}
+                            />
+                        </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 py-3 border-t border-gray-100 flex-shrink-0">
+                <div className="px-4 py-3 border-t border-border bg-card flex-shrink-0">
                     {currentStep === 'details' ? (
                         <div className="flex space-x-3 ">
                             <Button
-                                className="flex-1 bg-gray-900 hover:bg-gray-800 text-white border-0 h-11 font-medium"
+                                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground border-0 h-11 font-medium"
                                 onClick={goToApplication}
                             >
                                 <MessageCircle className="w-4 h-4 mr-2" />
@@ -231,7 +243,7 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                             </Button>
                             <Button
                                 variant="outline"
-                                className="border-gray-200 text-gray-700 hover:bg-gray-50 h-11 font-medium px-4 cursor-pointer"
+                                className="border-border text-foreground hover:bg-muted dark:hover:bg-muted/50 h-11 font-medium px-4 cursor-pointer"
                                 disabled={isSubmitting}
                                 onClick={() => (beaconState ? handleUnsaveBeacon(beacon.id) : handleSaveBeacon(beacon))}
                             >
@@ -242,7 +254,7 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="border-gray-200 text-gray-700 hover:bg-gray-50 h-11 w-11"
+                                    className="border-border text-foreground hover:bg-muted dark:hover:bg-muted/50 h-11 w-11"
                                     onClick={() => window.open(beacon.github_url || '', '_blank')}
                                 >
                                     <ExternalLink className="w-4 h-4" />
@@ -255,7 +267,7 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                                 type="button"
                                 variant="outline"
                                 onClick={goBackToDetails}
-                                className="flex-1 border-gray-200 text-gray-700 hover:bg-gray-50 h-11"
+                                className="flex-1 border-border text-foreground hover:bg-muted dark:hover:bg-muted/50 h-11"
                                 disabled={isSubmitting}
                             >
                                 Back to Details
@@ -264,7 +276,7 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                                 type="submit"
                                 onClick={handleSubmit}
                                 disabled={!isFormValid || isSubmitting}
-                                className="flex-1 bg-gray-900 hover:bg-gray-800 text-white h-11"
+                                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-11"
                             >
                                 {isSubmitting ? (
                                     <>

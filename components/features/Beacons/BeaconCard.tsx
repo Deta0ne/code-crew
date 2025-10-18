@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
 import { ProjectWithMembers } from '@/types/database';
+import { getProjectCategoryLabel, getProjectTypeLabel } from '../BeaconForm/config/utils';
 
 // Icon mapping for different project types
 const iconMap = {
@@ -54,7 +55,7 @@ interface BeaconCardProps {
 }
 
 export function BeaconCard({ beacon, className, onViewDetails }: BeaconCardProps) {
-    const { project_type, title, description, difficulty, current_members, max_members, members, category } = beacon;
+    const { project_type, title, description, current_members, max_members, members, category } = beacon;
     const router = useRouter();
 
     const Icon = iconMap[project_type];
@@ -118,24 +119,18 @@ export function BeaconCard({ beacon, className, onViewDetails }: BeaconCardProps
                         </div>
 
                         {/* Badges */}
-                        <div className="flex flex-wrap gap-2 justify-end">
+                        <div className="flex flex-wrap gap-1 justify-end ">
                             <Badge
                                 variant="secondary"
-                                className="rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm bg-background/80 border border-border/50"
+                                className="rounded-full text-xs font-small backdrop-blur-sm bg-background/80 border border-border/50"
                             >
-                                {project_type.charAt(0).toUpperCase() + project_type.slice(1)}
+                                {getProjectTypeLabel(project_type)}
                             </Badge>
                             <Badge
                                 variant="outline"
-                                className="rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm bg-background/60"
+                                className="rounded-full text-xs font-small backdrop-blur-sm bg-background/60"
                             >
-                                {category.charAt(0).toUpperCase() + category.slice(1)}
-                            </Badge>
-                            <Badge
-                                variant="outline"
-                                className="rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm bg-background/60"
-                            >
-                                {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                                {getProjectCategoryLabel(category)}
                             </Badge>
                         </div>
                     </div>
