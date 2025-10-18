@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { getActiveBeacons, getUserBeacons, type BeaconResult } from '@/lib/services/beacon';
+import { getActiveBeaconsRPC, getUserBeacons, type BeaconResult } from '@/lib/services/beacon';
 
 export const useActiveBeacons = (limit?: number) => {
     return useQuery({
         queryKey: ['beacons', 'active', limit],
-        queryFn: () => getActiveBeacons(limit),
+        queryFn: () => getActiveBeaconsRPC(limit),
         staleTime: 5 * 60 * 1000, // 5 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes
     });

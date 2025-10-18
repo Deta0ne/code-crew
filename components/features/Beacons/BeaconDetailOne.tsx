@@ -5,17 +5,16 @@ import { Globe } from 'lucide-react';
 import { User } from 'lucide-react';
 import { Github } from 'lucide-react';
 import { ExternalLink } from 'lucide-react';
-import { Link } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { AvatarImage } from '@/components/ui/avatar';
 import { AvatarFallback } from '@/components/ui/avatar';
-import { getInitials } from './config/utils';
-import { getTypeSpecificInfo } from './config/utils';
-import { renderFieldValue } from './config/utils';
-import type { BeaconResult } from '@/lib/services/beacon';
+import { getInitials } from '../BeaconForm/config/utils';
+import { getTypeSpecificInfo } from '../BeaconForm/config/utils';
+import { renderFieldValue } from '../BeaconForm/config/utils';
+import { ProjectWithMembers } from '@/types/database';
 import { useRouter } from 'next/navigation';
 
-const BeaconDetailOne = ({ beacon }: { beacon: BeaconResult }) => {
+const BeaconDetailOne = ({ beacon }: { beacon: ProjectWithMembers }) => {
     const router = useRouter();
     return (
         <div className="px-4 pb-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] transition-opacity duration-300 ease-in-out opacity-100">
@@ -29,7 +28,7 @@ const BeaconDetailOne = ({ beacon }: { beacon: BeaconResult }) => {
                 <div>
                     <h3 className="text-sm font-semibold text-gray-900 mb-2">Tags</h3>
                     <div className="flex flex-wrap gap-2">
-                        {beacon.tags.map((tag, index) => (
+                        {beacon.tags.map((tag: string, index: number) => (
                             <Badge
                                 key={index}
                                 variant="outline"
@@ -70,7 +69,7 @@ const BeaconDetailOne = ({ beacon }: { beacon: BeaconResult }) => {
             )}
 
             {/* Project Links */}
-            {(beacon.github_url || beacon.project_url) && (
+            {beacon.github_url && (
                 <div>
                     <h3 className="text-sm font-semibold text-gray-900 mb-2">Project Links</h3>
                     <div className="space-y-2">
@@ -83,18 +82,6 @@ const BeaconDetailOne = ({ beacon }: { beacon: BeaconResult }) => {
                             >
                                 <Github className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                                 <span>GitHub Repository</span>
-                                <ExternalLink className="w-3 h-3 text-gray-400" />
-                            </a>
-                        )}
-                        {beacon.project_url && (
-                            <a
-                                href={beacon.project_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors group"
-                            >
-                                <Link className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
-                                <span>Project Website</span>
                                 <ExternalLink className="w-3 h-3 text-gray-400" />
                             </a>
                         )}

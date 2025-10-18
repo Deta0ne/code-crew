@@ -7,7 +7,7 @@ import {
     getTypeSpecificSchema, 
     type ProjectType
 } from '@/components/features/BeaconForm/types';
-import { Database } from '@/types/database';
+import { Database, ProjectWithMembers } from '@/types/database';
 
 export type ProjectMemberWithRelations = {
     id: string;
@@ -176,62 +176,19 @@ export type BeaconResult = {
     isBookmarked: boolean;
 };
 
-export const getActiveBeacons = async (
+export const getActiveBeaconsRPC = async (
     limit: number = 20
-  ): Promise<(BeaconResult & { isBookmarked: boolean })[]> => {
+  ): Promise<(ProjectWithMembers[])> => {
     const supabase = await createClient();
   
-    const query = supabase
-      .from('projects')
-      .select(`
-        id,
-        title,
-        description,
-        short_description,
-        project_type,
-        category,
-        difficulty,
-        status,
-        max_members,
-        current_members,
-        view_count,
-        application_count,
-        bookmark_count,
-        is_beginner_friendly,
-        mentoring_available,
-        remote_friendly,
-        github_url,
-        project_url,
-        image_url,
-        tags,
-        type_specific_data,
-        created_at,
-        updated_at,
-        owner:users(
-          id,
-          username,
-          full_name,
-          avatar_url
-        ),
-        project_bookmarks!left(user_id)
-      `)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(limit);
-  
     const { data: { user } } = await supabase.auth.getUser();
-    const { data, error } = await query;
-    if (error) {
-        console.error('Error fetching active beacons:', error);
-        throw new Error('Failed to fetch active beacons');
-      }
-    return (data || []).map(beacon => ({
-      ...beacon,
-      owner: Array.isArray(beacon.owner) ? beacon.owner[0] : beacon.owner,
-      isBookmarked: beacon.project_bookmarks?.some(
-        (bm: { user_id: string }) => bm.user_id === user?.id
-      ) || false
-    })) as (BeaconResult & { isBookmarked: boolean })[];
+
+    const { data: projectsData } = await supabase.rpc('get_projects_with_members', {
+        p_limit: limit,
+        p_offset: 0,
+        p_user_id: user?.id
+    });
+    return projectsData;
 };
 
 export const createBookmark = async (beacon: { id: string; title: string; project_type: string; status: string }) => {
