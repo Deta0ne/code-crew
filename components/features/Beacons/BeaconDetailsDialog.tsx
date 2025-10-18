@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Calendar, ExternalLink, MessageCircle, Bookmark, ArrowLeft, Loader2, UserPlus } from 'lucide-react';
@@ -25,9 +25,10 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
     const [formData, setFormData] = useState<Partial<ApplicationInput>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [beaconState, setBeaconState] = useState(false);
+    const [beaconState, setBeaconState] = useState(beacon?.is_bookmarked);
+
     useEffect(() => {
-        setBeaconState(false);
+        setBeaconState(beacon?.is_bookmarked);
     }, [beacon]);
     if (!beacon) return null;
 
@@ -141,6 +142,11 @@ export function BeaconDetailsDialog({ beacon, open, onOpenChange }: BeaconDetail
                                 <DialogTitle className="text-xl font-semibold text-gray-900">
                                     {currentStep === 'details' ? beacon.title : 'Join Project'}
                                 </DialogTitle>
+                                <DialogDescription className="sr-only">
+                                    {currentStep === 'details'
+                                        ? `Project details for ${beacon.title}`
+                                        : 'Application form to join the project'}
+                                </DialogDescription>
                                 {currentStep === 'details' ? (
                                     <div className="flex items-center space-x-3 mt-1">
                                         <Badge

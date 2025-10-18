@@ -181,9 +181,12 @@ export const getActiveBeaconsRPC = async (
   ): Promise<(ProjectWithMembers[])> => {
     const supabase = await createClient();
   
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { data: projectsData } = await supabase.rpc('get_projects_with_members', {
         p_limit: limit,
         p_offset: 0,
+        p_user_id: user?.id
     });
     return projectsData;
 };

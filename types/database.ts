@@ -250,6 +250,7 @@ export interface Database {
             Database['public']['Tables']['projects']['Row'] & {
               owner: OwnerInfo;
               members: MemberSummary[];
+              is_bookmarked: boolean;
             }
           >
         }

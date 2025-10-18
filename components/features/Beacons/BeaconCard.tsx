@@ -54,7 +54,7 @@ interface BeaconCardProps {
 }
 
 export function BeaconCard({ beacon, className, onViewDetails }: BeaconCardProps) {
-    const { project_type, title, description, difficulty, current_members, max_members, members } = beacon;
+    const { project_type, title, description, difficulty, current_members, max_members, members, category } = beacon;
     const router = useRouter();
 
     const Icon = iconMap[project_type];
@@ -102,7 +102,7 @@ export function BeaconCard({ beacon, className, onViewDetails }: BeaconCardProps
                         {/* Dynamic Icon Background */}
                         <div
                             className={cn(
-                                'relative flex h-14 w-14 items-center justify-center rounded-xl',
+                                'relative flex size-14 items-center justify-center rounded-xl',
                                 'bg-gradient-to-br shadow-lg transition-all duration-500',
                                 'group-hover:scale-110 group-hover:shadow-xl',
                                 gradient,
@@ -111,7 +111,7 @@ export function BeaconCard({ beacon, className, onViewDetails }: BeaconCardProps
                             <div className="absolute inset-0 rounded-xl bg-background/40 backdrop-blur-sm" />
                             <Icon
                                 className={cn(
-                                    'relative h-7 w-7 transition-transform duration-500 group-hover:scale-110',
+                                    'relative size-7 transition-transform duration-500 group-hover:scale-110',
                                     iconColor,
                                 )}
                             />
@@ -124,6 +124,12 @@ export function BeaconCard({ beacon, className, onViewDetails }: BeaconCardProps
                                 className="rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm bg-background/80 border border-border/50"
                             >
                                 {project_type.charAt(0).toUpperCase() + project_type.slice(1)}
+                            </Badge>
+                            <Badge
+                                variant="outline"
+                                className="rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm bg-background/60"
+                            >
+                                {category.charAt(0).toUpperCase() + category.slice(1)}
                             </Badge>
                             <Badge
                                 variant="outline"
