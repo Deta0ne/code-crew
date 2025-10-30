@@ -192,33 +192,6 @@ export const getActiveBeaconsRPC = async (
     return projectsData;
 };
 
-export const createBookmark = async (beacon: { id: string; title: string; project_type: string; status: string }) => {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from('project_bookmarks').insert({
-        project_id: beacon.id,
-        user_id: user?.id,
-        title: beacon.title,
-        project_type: beacon.project_type,
-        status: beacon.status,
-        
-    });
-    if (error) {
-      return { success: false, error: "Bookmark creation failed caused by " + error.message };
-    }
-    return { success: true, message: 'Bookmark created successfully' };
-};
-
-export const deleteBookmark = async (beaconId: string) => {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from('project_bookmarks').delete().eq('project_id', beaconId).eq('user_id', user?.id);
-    if (error) {
-        return { success: false, error: "Bookmark deletion failed caused by " + error.message };
-    }
-    return { success: true, message: 'Bookmark deleted successfully' };
-};
-
 export const getUserBeacons = async (userId: string): Promise<BeaconResult[]> => {
     const supabase = await createClient();
 
