@@ -1,6 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
-import DashboardClient from './DashboardClient';
-import { ProjectApplication, ProjectBookmark } from '@/components/features/dashboard/types';
+import { redirect } from 'next/navigation';
+import DashboardClient from '@/components/features/dashboard/DashboardClient';
+import {
+    getOwnerApplications,
+    getApplicantApplications,
+    getUserBookmarks,
+    getActiveProjects,
+} from '@/components/features/dashboard/services';
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -9,28 +15,23 @@ export default async function DashboardPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-        return <div>Please log in to view your dashboard.</div>;
+        redirect('/login');
     }
 
-    //Can be used to get only owner applications
-    const { data: project_applications } = await supabase.from('project_applications').select('*');
-
-    const owner_data = project_applications?.filter(
-        (application) => application.applicant_id !== user?.id,
-    ) as ProjectApplication[];
-    const applicant_data = project_applications?.filter(
-        (application) => application.applicant_id === user?.id,
-    ) as ProjectApplication[];
-
-    const { data: bookmarks } = await supabase.from('project_bookmarks').select('*').eq('user_id', user?.id);
-
-    const bookmark_data = bookmarks as ProjectBookmark[];
+    // Fetch all dashboard data in parallel
+    const [ownerData, applicantData, bookmarkData, activeProjects] = await Promise.all([
+        getOwnerApplications(user.id),
+        getApplicantApplications(user.id),
+        getUserBookmarks(user.id),
+        getActiveProjects(user.id),
+    ]);
 
     return (
         <DashboardClient
-            initialOwnerData={owner_data}
-            initialApplicantData={applicant_data}
-            initialBookmarkData={bookmark_data || []}
+            initialOwnerData={ownerData}
+            initialApplicantData={applicantData}
+            initialBookmarkData={bookmarkData}
+            initialActiveProjects={activeProjects}
             userId={user.id}
         />
     );

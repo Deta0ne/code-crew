@@ -11,7 +11,7 @@ import {
     DialogClose,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { ProjectApplication } from './types';
+import { ProjectApplication } from '../types';
 import { acceptApplication, rejectApplication } from '@/lib/services/application';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';

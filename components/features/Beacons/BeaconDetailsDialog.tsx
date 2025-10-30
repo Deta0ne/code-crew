@@ -13,7 +13,7 @@ import {
     getProjectCategoryLabel,
 } from '../BeaconForm/config/utils';
 import { submitApplication } from '@/lib/services/application';
-import { createBookmark, deleteBookmark } from '@/lib/services/beacon';
+import { createBookmark, deleteBookmark } from '@/lib/services/bookmark';
 import { ApplicationInput } from '@/lib/validations/application';
 import BeaconDetailOne from './BeaconDetailOne';
 import BeaconDetailTwo from './BeaconDetailTwo';
