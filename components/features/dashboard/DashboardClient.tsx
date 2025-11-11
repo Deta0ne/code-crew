@@ -48,7 +48,7 @@ export default function DashboardClient({
     );
 
     return (
-        <div className="container mx-auto pt-4 space-y-4 xl:space-y-8">
+        <div className="container mx-auto space-y-4 xl:space-y-8 p-4 md:p-6 lg:p-8">
             {/* Stats Cards / Tabs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat) => (

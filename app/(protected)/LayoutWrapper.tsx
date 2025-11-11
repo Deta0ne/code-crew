@@ -4,23 +4,26 @@ import { ReactNode } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/navigation/app-sidebar';
 import { SiteHeader } from '@/components/navigation/site-header';
-import { useUser } from '@/hooks/useUser';
-import { useAuth } from '@/hooks/useAuth';
-export function LayoutWrapper({ children }: { children: ReactNode }) {
-    const { user } = useAuth();
-    const { data: userProfile, isLoading: isUserLoading } = useUser(user?.id);
 
+export function LayoutWrapper({ children }: { children: ReactNode }) {
     return (
-        <div className="[--header-height:calc(--spacing(14))]">
-            <SidebarProvider className="flex flex-col">
+        <SidebarProvider
+            style={
+                {
+                    '--sidebar-width': 'calc(var(--spacing) * 72)',
+                    '--header-height': 'calc(var(--spacing) * 12)',
+                } as React.CSSProperties
+            }
+        >
+            <AppSidebar variant="inset" />
+            <SidebarInset>
                 <SiteHeader />
-                <div className="flex flex-1">
-                    <AppSidebar userProfile={userProfile} isLoading={isUserLoading} />
-                    <SidebarInset className="overflow-hidden">
-                        <div className="flex flex-1 flex-col overflow-y-auto p-4 pt-0">{children}</div>
-                    </SidebarInset>
+                <div className="flex flex-1 flex-col">
+                    <div className="@container/main flex flex-1 flex-col gap-2">
+                        <div className="flex flex-col gap-4">{children}</div>
+                    </div>
                 </div>
-            </SidebarProvider>
-        </div>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

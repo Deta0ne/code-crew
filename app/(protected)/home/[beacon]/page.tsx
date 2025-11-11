@@ -121,7 +121,7 @@ export default async function BeaconPage({ params }: Props) {
     const chatUsername = user.user_metadata.user_name || user.email;
 
     return (
-        <div className="max-w-7xl space-y-6 pt-4">
+        <div className="max-w-7xl space-y-6 p-4 md:p-6 lg:p-8">
             {/* Welcome Header */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg p-6">
                 <div className="flex items-center justify-between">

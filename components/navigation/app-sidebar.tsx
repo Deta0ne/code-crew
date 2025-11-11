@@ -1,10 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { Bot, Command, Grid, Home, LifeBuoy, Send, Settings2 } from 'lucide-react';
+import Link from 'next/link';
+import { IconHome, IconSearch, IconBell, IconInnerShadowTop, IconFolder, IconSettings } from '@tabler/icons-react';
 
+import { NavDocuments } from '@/components/navigation/nav-documents';
 import { NavMain } from '@/components/navigation/nav-main';
-import { NavProjects } from '@/components/navigation/nav-projects';
 import { NavSecondary } from '@/components/navigation/nav-secondary';
 import { NavUser } from '@/components/navigation/nav-user';
 import {
@@ -16,113 +17,82 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { UserProfile } from '@/types/database';
-import { usePathname } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
+import { useAllUserProjects } from '@/hooks/useProjects';
 
-type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
-    userProfile?: UserProfile;
-    isLoading?: boolean;
-};
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const { user } = useAuth();
+    const { data: userProfile } = useUser(user?.id);
+    const { data: projects = [], isLoading: isProjectsLoading } = useAllUserProjects();
 
-export function AppSidebar({ userProfile, isLoading, ...props }: AppSidebarProps) {
-    const pathname = usePathname();
-
-    if (isLoading && !userProfile) {
-        return <div>Loading...</div>;
-    }
-
-    if (!userProfile) {
-        return <div>An error occurred.</div>;
-    }
-
-    const data = {
-        user: {
-            name: 'shadcn',
-            email: 'm@example.com',
-            avatar: '/avatars/shadcn.jpg',
+    const navMainItems = [
+        {
+            title: 'Home',
+            url: '/home',
+            icon: IconHome,
         },
-        navMain: [
-            {
-                title: 'Home',
-                url: '/home',
-                icon: Home,
-                isActive: pathname === '/home',
-            },
-            {
-                title: 'Dashboard',
-                url: '/dashboard',
-                icon: Grid,
-                isActive: pathname === '/dashboard',
-            },
-            {
-                title: 'Profile',
-                url: '#',
-                icon: Bot,
-            },
+        {
+            title: 'Search',
+            url: '/search',
+            icon: IconSearch,
+        },
+        {
+            title: 'Dashboard',
+            url: '/dashboard',
+            icon: IconBell,
+        },
+    ];
 
-            {
-                title: 'Settings',
-                url: '#',
-                icon: Settings2,
-                items: [
-                    {
-                        title: 'General',
-                        url: '#',
-                    },
-                    {
-                        title: 'Team',
-                        url: '#',
-                    },
-                    {
-                        title: 'Billing',
-                        url: '#',
-                    },
-                    {
-                        title: 'Limits',
-                        url: '#',
-                    },
-                ],
-            },
-        ],
-        navSecondary: [
-            {
-                title: 'Support',
-                url: '#',
-                icon: LifeBuoy,
-            },
-            {
-                title: 'Feedback',
-                url: '#',
-                icon: Send,
-            },
-        ],
-    };
+    const navSecondaryItems = [
+        {
+            title: 'Settings',
+            url: '/settings',
+            icon: IconSettings,
+        },
+    ];
+
+    const projectItems = projects.slice(0, 5).map((project) => ({
+        name: project.title,
+        url: `/home/${project.id}`,
+        icon: IconFolder,
+    }));
+
+    const userData = userProfile
+        ? {
+              name: userProfile.full_name || userProfile.username,
+              email: user?.email || '',
+              avatar: userProfile.avatar_url || '',
+              username: userProfile.username,
+          }
+        : {
+              name: user?.email || 'User',
+              email: user?.email || '',
+              avatar: '',
+              username: '',
+          };
+
     return (
-        <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
+        <Sidebar collapsible="offcanvas" {...props}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <a href="#">
-                                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                                    <Command className="size-4" />
-                                </div>
-                                <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-medium">Code Crew</span>
-                                    <span className="truncate text-xs">Demo</span>
-                                </div>
-                            </a>
+                        <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+                            <Link href="/home">
+                                <IconInnerShadowTop className="!size-5" />
+                                <span className="text-base font-semibold">CodeCrev</span>
+                            </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={data.navMain} />
-                <NavProjects />
-                <NavSecondary items={data.navSecondary} className="mt-auto" />
+                <NavMain items={navMainItems} />
+                {!isProjectsLoading && projectItems.length > 0 && <NavDocuments items={projectItems} />}
+                <NavSecondary items={navSecondaryItems} className="mt-auto" />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={userProfile} />
+                <NavUser user={userData} />
             </SidebarFooter>
         </Sidebar>
     );

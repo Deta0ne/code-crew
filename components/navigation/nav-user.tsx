@@ -1,6 +1,7 @@
 'use client';
 
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react';
+import { IconDotsVertical, IconLogout, IconUserCircle } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -13,22 +14,41 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
-import { UserProfile } from '@/types/database';
-import { signOut } from '@/lib/services/auth';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { createClient } from '@/lib/supabase/client';
 
-export function NavUser({ user }: { user: UserProfile }) {
+export function NavUser({
+    user,
+}: {
+    user: {
+        name: string;
+        email: string;
+        avatar: string;
+        username: string;
+    };
+}) {
     const { isMobile } = useSidebar();
-    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
-    const handleSignOut = () => {
-        setIsLoading(true);
-        signOut().then(() => {
-            setIsLoading(false);
-        });
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
+
+    const handleProfileClick = () => {
+        if (user.username) {
+            router.push(`/${user.username}`);
+        }
+    };
+
+    // Get initials for avatar fallback
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
     };
 
     return (
@@ -40,18 +60,15 @@ export function NavUser({ user }: { user: UserProfile }) {
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
-                            <Image
-                                src={user.avatar_url || '/default-avatar.png'}
-                                alt={user.full_name || 'User Avatar'}
-                                width={32}
-                                height={32}
-                                className="rounded-lg"
-                            />
+                            <Avatar className="h-8 w-8 rounded-lg">
+                                <AvatarImage src={user.avatar} alt={user.name} />
+                                <AvatarFallback className="rounded-lg">{getInitials(user.name)}</AvatarFallback>
+                            </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium">{user.full_name}</span>
-                                <span className="truncate text-xs">{user.username}</span>
+                                <span className="truncate font-medium">{user.name}</span>
+                                <span className="text-muted-foreground truncate text-xs">{user.email}</span>
                             </div>
-                            <ChevronsUpDown className="ml-auto size-4" />
+                            <IconDotsVertical className="ml-auto size-4" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -63,40 +80,25 @@ export function NavUser({ user }: { user: UserProfile }) {
                         <DropdownMenuLabel className="p-0 font-normal">
                             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                 <Avatar className="h-8 w-8 rounded-lg">
-                                    <AvatarImage src={user.avatar_url || ''} alt={user.full_name || ''} />
-                                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                    <AvatarFallback className="rounded-lg">{getInitials(user.name)}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-medium">{user.full_name}</span>
-                                    <span className="truncate text-xs">{user.username}</span>
+                                    <span className="truncate font-medium">{user.name}</span>
+                                    <span className="text-muted-foreground truncate text-xs">{user.email}</span>
                                 </div>
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <Sparkles />
-                                Upgrade to Pro
+                            <DropdownMenuItem onClick={handleProfileClick}>
+                                <IconUserCircle />
+                                Profile
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem onClick={() => router.push(`/${user.username}`)}>
-                                <BadgeCheck />
-                                Account
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <CreditCard />
-                                Billing
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Bell />
-                                Notifications
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleSignOut} variant="destructive" disabled={isLoading}>
-                            <LogOut />
+                        <DropdownMenuItem onClick={handleLogout}>
+                            <IconLogout />
                             Log out
                         </DropdownMenuItem>
                     </DropdownMenuContent>
