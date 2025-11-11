@@ -48,43 +48,28 @@ export default function DashboardClient({
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-            <div className="container mx-auto px-6 py-8 space-y-8">
-                {/* Header */}
-                <div className="space-y-2">
-                    <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-muted-foreground text-lg">
-                        Manage your projects, applications, and saved beacons
-                    </p>
-                </div>
-
-                {/* Stats Cards / Tabs */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {stats.map((stat) => (
-                        <StatCard key={stat.id} stat={stat} isActive={activeTab === stat.id} onClick={setActiveTab} />
-                    ))}
-                </div>
-
-                {/* Tab Content */}
-                <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl p-6">
-                    {activeTab === 'owner' && (
-                        <OwnerApplications applications={ownerData} onUpdateApplication={handleUpdateApplication} />
-                    )}
-
-                    {activeTab === 'applicant' && (
-                        <ApplicantApplications
-                            applications={applicantData}
-                            onDeleteApplication={handleDeleteApplication}
-                        />
-                    )}
-
-                    {activeTab === 'active' && <ActiveProjects projects={initialActiveProjects} />}
-
-                    {activeTab === 'saved' && (
-                        <SavedProjects bookmarks={bookmarkData} onRemoveBookmark={handleRemoveBookmark} />
-                    )}
-                </div>
+        <div className="container mx-auto pt-4 space-y-4 xl:space-y-8">
+            {/* Stats Cards / Tabs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {stats.map((stat) => (
+                    <StatCard key={stat.id} stat={stat} isActive={activeTab === stat.id} onClick={setActiveTab} />
+                ))}
             </div>
+
+            {/* Tab Content */}
+            {activeTab === 'owner' && (
+                <OwnerApplications applications={ownerData} onUpdateApplication={handleUpdateApplication} />
+            )}
+
+            {activeTab === 'applicant' && (
+                <ApplicantApplications applications={applicantData} onDeleteApplication={handleDeleteApplication} />
+            )}
+
+            {activeTab === 'active' && <ActiveProjects projects={initialActiveProjects} />}
+
+            {activeTab === 'saved' && (
+                <SavedProjects bookmarks={bookmarkData} onRemoveBookmark={handleRemoveBookmark} />
+            )}
         </div>
     );
 }
