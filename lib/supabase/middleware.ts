@@ -42,7 +42,7 @@ export async function updateSession(request: NextRequest) {
   const currentPath = url.pathname
 
   // Unauthenticated user redirection
-  const publicPaths = ['/login', '/signup', '/auth', '/error', '/confirm']
+  const publicPaths = ['/login', '/signup', '/auth', '/error', '/confirm', '/']
   const isPublicPath = publicPaths.some(path => currentPath.startsWith(path))
 
   if (!user && !isPublicPath) {
