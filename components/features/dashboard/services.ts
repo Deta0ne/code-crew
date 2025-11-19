@@ -16,6 +16,9 @@ export async function getOwnerApplications(userId: string) {
                 id,
                 title,
                 owner_id
+            ),
+            developer_roles (
+                name
             )
         `,
         )
