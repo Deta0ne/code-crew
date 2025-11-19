@@ -32,7 +32,7 @@ export default function HeroSection() {
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8">
                         <Button asChild size="lg" className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-10 py-7 text-lg rounded-full shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(6,182,212,0.6)] border-0">
-                            <Link href="/dashboard">
+                            <Link href="/login">
                                 Answer the Call
                             </Link>
                         </Button>

@@ -26,7 +26,7 @@ export async function login(formData: SignInInput) {
     return { error: error.message }
   }
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  redirect('/home')
 }
 
 export async function signup(formData: SignUpInput) {
@@ -62,7 +62,7 @@ export async function verifyOTP(formData: OTPVerificationInput) {
   }
   const supabase = await createClient()
 
-  const { data,error } = await supabase.auth.verifyOtp({
+  const { data, error } = await supabase.auth.verifyOtp({
     email: formData.email,
     token: formData.token,
     type: 'signup'
@@ -82,17 +82,17 @@ export async function verifyOTP(formData: OTPVerificationInput) {
     email: data.user.email!,
     name: data.user.user_metadata?.full_name,
     username: data.user.user_metadata?.username,
-    picture: undefined, 
+    picture: undefined,
     github_url: undefined,
-}, 'manual');
+  }, 'manual');
 
-if (profileResult.error) {
-  console.error('Profile Creation Error after OTP:', profileResult.error);
-  return { success: false, error: `Your account was verified, but we failed to create your profile. Please contact support. Error: ${profileResult.error}` };
-}
+  if (profileResult.error) {
+    console.error('Profile Creation Error after OTP:', profileResult.error);
+    return { success: false, error: `Your account was verified, but we failed to create your profile. Please contact support. Error: ${profileResult.error}` };
+  }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  redirect('/home')
 }
 
 export async function resendOTP(email: string) {
@@ -140,9 +140,9 @@ export async function signInWithGoogle() {
     return { error: error.message }
   }
 
-  return { 
-    url: data.url, 
-    error: null 
+  return {
+    url: data.url,
+    error: null
   }
 }
 
@@ -162,9 +162,9 @@ export async function signInWithGitHub() {
     return { error: error.message }
   }
 
-  return { 
-    url: data.url, 
-    error: null 
+  return {
+    url: data.url,
+    error: null
   }
 }
 
@@ -200,7 +200,7 @@ export async function createOrUpdateUserProfile(user: OAuthUserMetadata, type: '
 
     return { error: null };
   }
-  
+
   else {
     let finalUsername: string;
 
