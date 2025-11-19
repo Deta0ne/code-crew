@@ -52,7 +52,7 @@ export async function updateSession(request: NextRequest) {
 
   // Authenticated user redirection
   if (user && (currentPath.startsWith('/login') || currentPath.startsWith('/signup'))) {
-    url.pathname = '/dashboard'
+    url.pathname = '/home'
     return NextResponse.redirect(url)
   }
 

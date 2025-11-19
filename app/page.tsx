@@ -4,6 +4,7 @@ import FeaturesSection from '@/components/landing/FeaturesSection';
 import CTASection from '@/components/landing/CTASection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
 import StatsSection from '@/components/landing/StatsSection';
+import Footer from '@/components/landing/Footer';
 import SmoothScroll from '@/components/ui/SmoothScroll';
 
 import BackgroundWrapper from '@/components/landing/BackgroundWrapper';
@@ -64,9 +65,7 @@ export default function Home() {
                 <HowItWorksSection />
                 <CTASection />
 
-                <footer className="py-8 border-t border-slate-800/50 bg-[#020817]/80 backdrop-blur-sm text-center text-slate-500 text-sm">
-                    <p>© {new Date().getFullYear()} CodeCrew. All systems operational.</p>
-                </footer>
+                <Footer />
             </div>
         </main>
     );

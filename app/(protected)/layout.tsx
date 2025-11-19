@@ -6,12 +6,17 @@ import { getAllUserProjects } from '@/lib/services/projects';
 import { createClient } from '@/lib/supabase/server';
 import Providers from '@/providers/providers';
 import { LayoutWrapper } from './LayoutWrapper';
+import { redirect } from 'next/navigation';
 
 export default async function ProtectedLayout({ children }: { children: ReactNode }) {
     const supabase = await createClient();
     const {
         data: { user },
     } = await supabase.auth.getUser();
+
+    if (!user) {
+        return redirect('/login');
+    }
 
     const queryClient = getQueryClient();
 
