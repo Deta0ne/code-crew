@@ -18,7 +18,10 @@ export type ProjectApplication = {
     review_notes?: string | null;
     created_at: string; // timestamp with time zone
     updated_at: string; // timestamp with time zone
-  };
+    developer_roles?: {
+        name: string;
+    } | null;
+};
 
 export type ProjectBookmark = {
     id: string; // uuid
@@ -28,7 +31,7 @@ export type ProjectBookmark = {
     project_type: string;
     status: string;
     created_at: string; // timestamp with time zone
-  };
+};
 
 export type ActiveProject = {
     id: string; // uuid

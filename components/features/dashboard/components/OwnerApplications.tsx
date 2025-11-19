@@ -6,7 +6,13 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, X, Clock, ExternalLink, Github, User, Calendar, MapPin, UserCircle } from 'lucide-react';
+import { Check, X, Clock, ExternalLink, Github, User, Calendar, MapPin, UserCircle, Briefcase, Target, Zap } from 'lucide-react';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { ProjectApplication } from '../types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -56,21 +62,21 @@ export default function OwnerApplications({ applications, onUpdateApplication }:
         switch (status) {
             case 'pending':
                 return (
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800/50">
                         <Clock className="w-3 h-3 mr-1" />
                         Pending
                     </Badge>
                 );
             case 'accepted':
                 return (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50">
                         <Check className="w-3 h-3 mr-1" />
                         Accepted
                     </Badge>
                 );
             case 'rejected':
                 return (
-                    <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                    <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50">
                         <X className="w-3 h-3 mr-1" />
                         Rejected
                     </Badge>
@@ -116,40 +122,92 @@ export default function OwnerApplications({ applications, onUpdateApplication }:
                         <Card
                             key={application.id}
                             className={cn(
-                                'border backdrop-blur-sm transition-colors',
+                                'border backdrop-blur-sm transition-all duration-200',
                                 isPending
-                                    ? 'border-yellow-200/50 bg-yellow-50/30 dark:border-yellow-500/20 dark:bg-yellow-950/20'
-                                    : 'border-border/50 bg-card/50 dark:bg-card/30',
+                                    ? 'border-yellow-200/50 bg-yellow-50/30 dark:border-yellow-500/20 dark:bg-yellow-950/10'
+                                    : 'border-border/40 bg-card/50 dark:bg-card/20 hover:bg-card/80 dark:hover:bg-card/40',
                             )}
                         >
                             <CardHeader className="pb-2">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex-1 min-w-0">
-                                        <Link
-                                            href={`/${application.applicant_name}`}
-                                            className="group inline-flex items-center gap-1.5 hover:underline mb-1"
-                                        >
-                                            <UserCircle className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                                            <h4 className="font-semibold text-sm">@{application.applicant_name}</h4>
-                                        </Link>
-                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                            <Calendar className="w-3 h-3" />
-                                            {formatDate(application.created_at)}
+                                        <div className="flex items-center justify-between mb-1">
+                                            <Link
+                                                href={`/${application.applicant_name}`}
+                                                className="group inline-flex items-center gap-1.5 hover:underline"
+                                            >
+                                                <UserCircle className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                <h4 className="font-semibold text-sm text-foreground">@{application.applicant_name}</h4>
+                                            </Link>
+                                            {application.review_notes ? (
+                                                <TooltipProvider>
+                                                    <Tooltip delayDuration={0}>
+                                                        <TooltipTrigger asChild className="cursor-help">
+                                                            {getStatusBadge(application.status)}
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="left" className="max-w-[300px] p-3">
+                                                            <p className="font-medium text-xs mb-1">Review Note:</p>
+                                                            <p className="text-xs text-white">{application.review_notes}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            ) : (
+                                                getStatusBadge(application.status)
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" />
+                                                {formatDate(application.created_at)}
+                                            </div>
+                                            {application.developer_roles?.name && (
+                                                <div className="flex items-center gap-1 text-primary/80 font-medium">
+                                                    <Briefcase className="w-3 h-3" />
+                                                    {application.developer_roles.name}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    {getStatusBadge(application.status)}
                                 </div>
                             </CardHeader>
 
                             <CardContent className="space-y-3">
                                 {/* Motivation Message */}
-                                <div className="rounded-lg bg-muted/30 dark:bg-muted/10 p-2.5">
-                                    <h5 className="text-xs font-medium mb-1.5 flex items-center gap-1">
-                                        <span className="text-xs">💬</span> Motivation
-                                    </h5>
-                                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                                        {application.motivation_message}
-                                    </p>
+                                {/* Motivation & Details */}
+                                <div className="grid gap-3">
+                                    <div className="rounded-lg bg-muted/40 dark:bg-muted/20 p-3 space-y-2">
+                                        <h5 className="text-xs font-medium flex items-center gap-1.5 text-foreground/80">
+                                            <span className="text-sm">💬</span> Motivation
+                                        </h5>
+                                        <p className="text-xs text-muted-foreground leading-relaxed">
+                                            {application.motivation_message}
+                                        </p>
+                                    </div>
+
+                                    {(application.what_they_bring || application.what_they_want_to_learn) && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {application.what_they_bring && (
+                                                <div className="rounded-lg bg-blue-50/50 dark:bg-blue-900/10 p-3 border border-blue-100/50 dark:border-blue-800/20">
+                                                    <h5 className="text-xs font-medium mb-1.5 flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
+                                                        <Zap className="w-3.5 h-3.5" /> Brings
+                                                    </h5>
+                                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                                        {application.what_they_bring}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {application.what_they_want_to_learn && (
+                                                <div className="rounded-lg bg-purple-50/50 dark:bg-purple-900/10 p-3 border border-purple-100/50 dark:border-purple-800/20">
+                                                    <h5 className="text-xs font-medium mb-1.5 flex items-center gap-1.5 text-purple-700 dark:text-purple-300">
+                                                        <Target className="w-3.5 h-3.5" /> Wants to Learn
+                                                    </h5>
+                                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                                        {application.what_they_want_to_learn}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Additional Info - Compact */}
@@ -278,19 +336,14 @@ export default function OwnerApplications({ applications, onUpdateApplication }:
                                 )}
 
                                 {/* Review Notes - Compact */}
-                                {application.review_notes && (
-                                    <>
-                                        <Separator />
-                                        <div className="rounded-lg bg-muted/30 dark:bg-muted/10 p-2 border border-border/50">
-                                            <h6 className="text-xs font-medium mb-1 flex items-center gap-1">
-                                                📝 Note
-                                            </h6>
-                                            <p className="text-xs text-muted-foreground line-clamp-2">
-                                                {application.review_notes}
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
+                                {/* Review Notes - Compact (Hidden if shown in tooltip, but kept for fallback or if user prefers visible) */}
+                                {/* We moved review notes to tooltip as requested, but we can keep it here if status is NOT rejected/accepted or just remove it to clean up. 
+                                    The user said "Rejected yazan tooltip özellikle kötü tasarımı var", implying they want a better tooltip.
+                                    I've added the tooltip to the badge. I will remove this section to avoid duplication and clutter, 
+                                    unless it's a pending application with notes (unlikely). 
+                                    Actually, let's keep it ONLY if it's NOT shown in tooltip (e.g. if I didn't wrap badge). 
+                                    But I did wrap badge. So I will remove this section to satisfy "cleaner UI" and "tooltip" request.
+                                */}
                             </CardContent>
                         </Card>
                     );
