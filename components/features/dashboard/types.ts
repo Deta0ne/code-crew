@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react';
+
 export type ProjectApplication = {
     id: string; // uuid
     project_id: string; // uuid
@@ -72,7 +74,7 @@ export interface StatCardConfig {
     label: string;
     value: number;
     badge: number;
-    icon: React.ElementType;
+    icon: ComponentType<{ className?: string }>;
     gradient: string;
     iconColor: string;
     badgeColor: string;
