@@ -60,7 +60,7 @@ export default function SignInForm({ onForgotPassword }: SignInFormProps) {
                 return;
             }
 
-            router.push('/dashboard');
+            router.push('/home');
         } catch (error) {
             console.error('Google Sign-In error:', error);
             toast.error('Google Sign-In failed');
@@ -84,7 +84,7 @@ export default function SignInForm({ onForgotPassword }: SignInFormProps) {
                 return;
             }
 
-            router.push('/dashboard');
+            router.push('/home');
         } catch (error) {
             console.error('GitHub Sign-In error:', error);
             toast.error('GitHub Sign-In failed');

@@ -27,7 +27,7 @@ export default function CTASection() {
                     </p>
 
                     <Button asChild size="lg" className="bg-white text-black hover:bg-slate-200 font-bold text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                        <Link href="/dashboard" className="flex items-center gap-2">
+                        <Link href="/login" className="flex items-center gap-2">
                             Start Your Journey <ArrowRight className="w-5 h-5" />
                         </Link>
                     </Button>
